@@ -20,7 +20,7 @@ def scrape_crop_prices():
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     driver.quit()
     city_span = soup.find('span', {'id': 'ctl00_cphPage_lblMsg'})
-    city_name = city_span.get_text(strip=True) if city_span else 'UnknownCity'
+    city_name = city_span.get_text(strip=True)
     td = soup.find('td', {'id': 'ctl00_cphPage_Grd'})
     if not td:
         print("❌ Data container not found")
