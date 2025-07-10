@@ -1,0 +1,33 @@
+# .github/workflows/scrape.yml
+
+name: Daily Crop Price Scraper
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # Runs daily at 5 AM UTC
+  workflow_dispatch:     # Allows manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser chromium-chromedriver
+        sudo cp /usr/lib/chromium-browser/chromedriver /usr/bin
+
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run the scraper
+      run: python scraper.py
