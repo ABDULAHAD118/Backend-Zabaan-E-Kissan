@@ -19,7 +19,7 @@ def scrape_crop_prices():
 
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     driver.quit()
-    
+
     td = soup.find('td', {'id': 'ctl00_cphPage_Grd'})
     if not td:
         print("❌ Data container not found")
@@ -51,7 +51,7 @@ def scrape_crop_prices():
 
     today = datetime.now().strftime('%Y-%m-%d')
     df = pd.DataFrame(data, columns=["Crop", "Min Price", "Max Price", "FQP", "Quantity"])
-    filename = f"data/amis_crop_prices_{today}.csv"
+    filename = f"amis_crop_prices_{today}.csv"
     df.to_csv(filename, index=False)
     print(f"✅ Saved {len(data)} crop records to '{filename}'")
 
