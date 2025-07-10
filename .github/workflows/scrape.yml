@@ -1,11 +1,12 @@
-# .github/workflows/scrape.yml
-
 name: Daily Crop Price Scraper
 
 on:
   schedule:
-    - cron: '0 5 * * *'  # Runs daily at 5 AM UTC
-  workflow_dispatch:     # Allows manual trigger
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   scrape:
@@ -26,8 +27,17 @@ jobs:
         sudo apt-get install -y chromium-browser chromium-chromedriver
         sudo cp /usr/lib/chromium-browser/chromedriver /usr/bin
 
-    - name: Install Python dependencies
+    - name: Install Python packages
       run: pip install -r requirements.txt
 
     - name: Run the scraper
       run: python scraper.py
+
+    - name: Commit and push CSV
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git pull origin main
+        git add data/*.csv
+        git commit -m "Add crop prices for $(date +'%Y-%m-%d')" || echo "No changes to commit"
+        git push
