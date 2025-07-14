@@ -1,0 +1,932 @@
+[
+  {
+    "city": "Chakwal",
+    "date": "14-07-2025",
+    "prices": [
+      {
+        "crop": "1Wheat",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "2Rice Basmati Super (New)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "3Rice (IRRI)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "4Paddy Basmati",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "5Paddy (IRRI)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "6Sugar",
+        "min_price": "18400",
+        "max_price": "18500",
+        "fqp": "18450",
+        "quantity": "-"
+      },
+      {
+        "crop": "7Gram White(local)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "8Gram Black",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "9Gram Pulse",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "10Moong",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "11Moong Pulse",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "12Mash",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "13Mash Pulse(Imported) washed",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "14Masoor Whole(local)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "15Masoor Pulse(local)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "16Maize",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "17Millet",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "18Sorghum",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "19RapeSeed (Torya)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "20Red Chilli Whole (Dry)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "21Seed Cotton(Phutti)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "22Banola",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "23Banola Cake",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "24Green Fodder",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "25Wheat Straw",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "26Rice Basmati Super (Old)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "27Rice Basmati (385)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "28Groundnut",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "29Jaggery (گڑ)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "30Mash Pulse(local)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "31Gram White(Imported)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "32Masoor Whole (Imported)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "33Masoor Pulse (Imported)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "34Gram Flour (بیسن)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "35Paddy Kainat",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "36Rice Kainat (New)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "37Sunflower",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "38Canola",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "39Sesame(تِل)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "40Mustard seed",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "41Brown Sugar(شکر)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "42Barley(جو)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "43Potato Fresh",
+        "min_price": "5400",
+        "max_price": "5500",
+        "fqp": "5450",
+        "quantity": "-"
+      },
+      {
+        "crop": "44Potato Store",
+        "min_price": "5500",
+        "max_price": "5600",
+        "fqp": "5550",
+        "quantity": "-"
+      },
+      {
+        "crop": "45Onion",
+        "min_price": "4000",
+        "max_price": "4100",
+        "fqp": "4050",
+        "quantity": "-"
+      },
+      {
+        "crop": "46Garlic (China)",
+        "min_price": "23500",
+        "max_price": "24000",
+        "fqp": "23750",
+        "quantity": "-"
+      },
+      {
+        "crop": "47Ginger(China)",
+        "min_price": "39000",
+        "max_price": "40000",
+        "fqp": "39500",
+        "quantity": "-"
+      },
+      {
+        "crop": "48Tomato",
+        "min_price": "5800",
+        "max_price": "5900",
+        "fqp": "5850",
+        "quantity": "-"
+      },
+      {
+        "crop": "49Spinach",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "50Brinjal",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "51Lady Finger/Okra (بھنڈی توری)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "52Bitter Gourd (کریلا)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "53Tinda Desi",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "54Pumpkin",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "55Cauliflower",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "56Peas",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "57Turnip",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "58Radish",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "59Carrot",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "60Cabbage",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "61Ginger (Thai)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "62Garlic (Local)",
+        "min_price": "18000",
+        "max_price": "18500",
+        "fqp": "18250",
+        "quantity": "-"
+      },
+      {
+        "crop": "63Cucumber (Kheera)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "64Green Chilli",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "65Capsicum (شملہ مرچ)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "66Bottle Gourd (کدو)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "67Zucchini (گھیا توری)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "68Fenugreek(میتھی)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "69Mongray",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "70Cocoyam(اروی)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "71Mustard Greens(ساگ سرسوں)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "72Carrot China",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "73Coriander (دھنیا)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "74Mint(پودینہ)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "75Turmeric Whole(ثابت ہلدی)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "76green chickpeas(چھولیا)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "77Green Onion",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "78Batho",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "79Potato Sugar free",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "80Tindian",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "81Suger Beet(چقندر)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "82Water chestnut(سنگھاڑا)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "83Apple Kala Kullu (Pahari)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "84Apple (Golden)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "85Apple (Ammre)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "86Banana(DOZEN)",
+        "min_price": "170",
+        "max_price": "180",
+        "fqp": "175",
+        "quantity": "-"
+      },
+      {
+        "crop": "87Guava",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "88Orange(100Pcs)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "89Kinnow (100Pcs)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "90Pomegranate(Kandhari)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "91Grapes (Other)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "92Mango(Chounsa)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "93Mango(Desahri)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "94Mango(Sindhri)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "95Pomegranate(Badana)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "96Musambi(100Pcs)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "97Grapefruit(100Pcs)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "98Mango(Anwer Ratol)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "99Melon",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "100Watermelon",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "101Apple Kala Kullu (Madani)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "102Mango (Malda)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "103Lychee",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "104Strawberry",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "105Dates (Aseel)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "106Apple (Gatcha)",
+        "min_price": "18000",
+        "max_price": "18500",
+        "fqp": "18250",
+        "quantity": "-"
+      },
+      {
+        "crop": "107Lemon (Other)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "108Lemon (Desi)",
+        "min_price": "25000",
+        "max_price": "26000",
+        "fqp": "25500",
+        "quantity": "-"
+      },
+      {
+        "crop": "109Lemon (China)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "110Peach",
+        "min_price": "15000",
+        "max_price": "15500",
+        "fqp": "15250",
+        "quantity": "-"
+      },
+      {
+        "crop": "111Peach Special",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "112Plum",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "113Mango Saharni",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "114Mango Desi",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "115Apricot Yellow",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "116Apricot White",
+        "min_price": "20000",
+        "max_price": "21000",
+        "fqp": "20500",
+        "quantity": "-"
+      },
+      {
+        "crop": "117Pomegranate Desi",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "118Grapes Gola",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "119Grapes Sundekhani",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "120Pear",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "121Sweet Musk Melon",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "122Sweet Musk Melon (Shireen)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "123Jaman",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "124Persimmon(جاپانی پھل)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "125Sweet Potato(شکر قندی)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "126jujube(بیر)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "127Cocunut",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "128Papaya(پپیتا)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "129sugarcane(گنڈ یری)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "130feutral early(100 Pcs) فروٹر",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "131Loquat",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      },
+      {
+        "crop": "132Dates(Irani)",
+        "min_price": "-",
+        "max_price": "-",
+        "fqp": "-",
+        "quantity": "-"
+      }
+    ]
+  }
+]
