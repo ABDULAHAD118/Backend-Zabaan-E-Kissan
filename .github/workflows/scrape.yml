@@ -2,7 +2,7 @@ name: Daily Crop Price Scraper
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 5 AM Pakistan time
+    - cron: '0 5 * * *'  # 5 AM Pakistan time
   workflow_dispatch:
 
 permissions:
