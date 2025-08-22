@@ -2,43 +2,36 @@ name: Daily Crop Price Scraper
 
 on:
   schedule:
-    - cron: '0 5 * * *'  # 5 AM Pakistan time
+    - cron: '0 0 * * *'  # 12 AM UTC (5 AM PKT)
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 60  # Prevent hanging jobs
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.11
+        python-version: '3.11'
 
-    - name: Install system dependencies
+    - name: Set up Chrome
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
+
+    - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
+        pip install --upgrade pip
+        pip install -r requirements.txt
 
-    - name: Install Python packages
-      run: pip install -r requirements.txt
-
-    - name: Run the scraper
-      run: python scraper.py
-
-    - name: Commit and push JSON
+    - name: Run scraper
+      env:
+        MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
       run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git pull origin main
-        git add data/*.json
-        git commit -m "Add crop prices for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-        git push
+        python scraper.py
+      timeout-minutes: 45
