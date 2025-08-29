@@ -34,4 +34,4 @@ jobs:
         MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
       run: |
         python scraper.py
-      timeout-minutes: 45
+      timeout-minutes: 120
