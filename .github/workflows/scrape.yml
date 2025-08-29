@@ -2,7 +2,7 @@ name: Daily Crop Price Scraper
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 12 AM UTC (5 AM PKT)
+    - cron: '0 5 * * *'  # 5 AM UTC (10 AM PKT)
   workflow_dispatch:
 
 jobs:
