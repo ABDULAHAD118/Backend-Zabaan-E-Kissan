@@ -31,7 +31,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class CropPriceDatabase:
-    import os
 
     def __init__(self, connection_string=None, database_name="crop_prices_db"):
         """Initialize MongoDB connection"""
