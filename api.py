@@ -58,6 +58,17 @@ class CropPriceAPI:
             logger.error("Failed to connect to MongoDB")
             raise
 
+    def create_indexes(self):
+        """Create indexes for faster queries"""
+        try:
+            self.collection.create_index("city")
+            self.collection.create_index("crop")
+            self.collection.create_index("date")
+            self.collection.create_index("scraped_at")
+            logger.info("Indexes created successfully")
+        except Exception as e:
+            logger.error(f"Failed to create indexes: {e}")
+
     def get_all_cities(self):
         try:
             cities = self.collection.distinct("city")
