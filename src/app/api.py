@@ -8,10 +8,13 @@ import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
+from dotenv import load_dotenv  # NEW
 
+# Load environment variables early
+load_dotenv()  # NEW
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))  # CHANGED: env-based log level
 logger = logging.getLogger(__name__)
 
 
@@ -41,10 +44,21 @@ class CropPriceAPI:
             connection_string = os.environ.get('MONGODB_CONNECTION_STRING')
             if not connection_string:
                 raise ValueError(
-                    "MongoDB connection string not found. Please set MONGODB_CONNECTION_STRING environment variable.")
+                    "MongoDB connection string not found. Please set MONGODB_CONNECTION_STRING environment variable."
+                )
         try:
-            self.client = MongoClient(connection_string)
-            self.db = self.client[database_name]
+            # Use safe defaults for production
+            self.client = MongoClient(
+                connection_string,
+                serverSelectionTimeoutMS=int(os.getenv("MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000")),
+                socketTimeoutMS=int(os.getenv("MONGO_SOCKET_TIMEOUT_MS", "10000")),
+                connectTimeoutMS=int(os.getenv("MONGO_CONNECT_TIMEOUT_MS", "5000")),
+                retryWrites=True,
+                uuidRepresentation="standard",
+                tz_aware=True,
+            )
+            db_name = os.getenv("MONGODB_DB_NAME", database_name)  # NEW: override via env
+            self.db = self.client[db_name]
             self.collection = self.db.crop_prices
 
             # Test connection
@@ -141,21 +155,55 @@ app = FastAPI(
 )
 
 # ✅ CORS middleware must be after app is created
+allowed_origins = os.getenv("ALLOW_ORIGINS", "*")
+if allowed_origins == "*":
+    origins = ["*"]
+else:
+    origins = [o.strip() for o in allowed_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change to ["http://localhost:3000"] for frontend only
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Initialize database connection
-try:
-    db_api = CropPriceAPI()
-except Exception as e:
-    logger.error(f"Failed to initialize API database connection: {e}")
-    db_api = None
+# Initialize database connection on startup and close on shutdown
+db_api: Optional[CropPriceAPI] = None  # CHANGED: initialize later
+
+@app.on_event("startup")
+async def on_startup():
+    global db_api
+    try:
+        db_api = CropPriceAPI()
+        logger.info("API startup complete")
+    except Exception as e:
+        logger.exception(f"Startup failed: {e}")
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    global db_api
+    try:
+        if db_api and db_api.client:
+            db_api.client.close()
+            logger.info("MongoDB client closed")
+    except Exception as e:
+        logger.exception(f"Shutdown cleanup failed: {e}")
+
+@app.get("/health", response_model=Dict[str, Any])
+async def health():
+    return {"status": "ok", "service": "crop-prices-api", "time": datetime.utcnow().isoformat()}
+
+@app.get("/ready", response_model=Dict[str, Any])
+async def readiness():
+    try:
+        if not db_api:
+            raise RuntimeError("DB not initialized")
+        db_api.client.admin.command("ping")
+        return {"status": "ready"}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Not ready: {str(e)}")
 
 
 @app.get("/", response_model=Dict[str, Any])
@@ -257,4 +305,10 @@ async def get_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app,
+        host=os.getenv("HOST", "0.0.0.0"),
+        port=int(os.getenv("PORT", "8000")),
+        reload=bool(int(os.getenv("UVICORN_RELOAD", "0"))),
+        log_level=os.getenv("LOG_LEVEL", "info").lower()
+    )
