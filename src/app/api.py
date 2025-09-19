@@ -1,24 +1,36 @@
 import os
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
 import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 from pydantic import BaseModel
-from dotenv import load_dotenv  # NEW
+from dotenv import load_dotenv
 
-# Load environment variables early
-load_dotenv()  # NEW
+# ✅ Chatbot imports
+from .chatbotWorkflow import chatbot_graph as chatbot
+from langchain_core.messages import HumanMessage
 
+
+# --------------------------
+# Load environment variables
+# --------------------------
+load_dotenv()
+
+# --------------------------
 # Configure logging
-logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))  # CHANGED: env-based log level
+# --------------------------
+
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger(__name__)
 
 
-# Pydantic models for API responses
+# --------------------------
+# Pydantic models
+# --------------------------
 class CropPrice(BaseModel):
     city: str
     date: str
@@ -37,17 +49,21 @@ class APIResponse(BaseModel):
     message: Optional[str] = None
 
 
+class ChatRequest(BaseModel):  # ✅ For chatbot API
+    query: str
+
+
+# --------------------------
+# Database Layer
+# --------------------------
 class CropPriceAPI:
     def __init__(self, connection_string=None, database_name="crop_prices_db"):
-        """Initialize MongoDB connection"""
         if connection_string is None:
-            connection_string = os.environ.get('MONGODB_CONNECTION_STRING')
+            connection_string = os.environ.get("MONGODB_CONNECTION_STRING")
             if not connection_string:
-                raise ValueError(
-                    "MongoDB connection string not found. Please set MONGODB_CONNECTION_STRING environment variable."
-                )
+                raise ValueError("MongoDB connection string not found. Please set MONGODB_CONNECTION_STRING.")
+
         try:
-            # Use safe defaults for production
             self.client = MongoClient(
                 connection_string,
                 serverSelectionTimeoutMS=int(os.getenv("MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000")),
@@ -57,36 +73,33 @@ class CropPriceAPI:
                 uuidRepresentation="standard",
                 tz_aware=True,
             )
-            db_name = os.getenv("MONGODB_DB_NAME", database_name)  # NEW: override via env
+            db_name = os.getenv("MONGODB_DB_NAME", database_name)
             self.db = self.client[db_name]
             self.collection = self.db.crop_prices
 
             # Test connection
-            self.client.admin.command('ping')
-            logger.info("Successfully connected to MongoDB")
+            self.client.admin.command("ping")
+            logger.info("✅ Successfully connected to MongoDB")
 
-            # Create indexes for better performance
+            # Create indexes
             self.create_indexes()
-
         except ConnectionFailure:
-            logger.error("Failed to connect to MongoDB")
+            logger.error("❌ Failed to connect to MongoDB")
             raise
 
     def create_indexes(self):
-        """Create indexes for faster queries"""
         try:
             self.collection.create_index("city")
             self.collection.create_index("crop")
             self.collection.create_index("date")
             self.collection.create_index("scraped_at")
-            logger.info("Indexes created successfully")
+            logger.info("✅ Indexes created successfully")
         except Exception as e:
             logger.error(f"Failed to create indexes: {e}")
 
     def get_all_cities(self):
         try:
-            cities = self.collection.distinct("city")
-            return sorted(cities)
+            return sorted(self.collection.distinct("city"))
         except Exception as e:
             logger.error(f"Error fetching cities: {e}")
             return []
@@ -94,14 +107,12 @@ class CropPriceAPI:
     def get_all_crops(self, city: Optional[str] = None):
         try:
             filter_query = {"city": city} if city else {}
-            crops = self.collection.distinct("crop", filter_query)
-            return sorted(crops)
+            return sorted(self.collection.distinct("crop", filter_query))
         except Exception as e:
             logger.error(f"Error fetching crops: {e}")
             return []
 
-    def get_crop_prices(self, city: Optional[str] = None, crop: Optional[str] = None,
-                        date: Optional[str] = None, limit: int = 100, skip: int = 0):
+    def get_crop_prices(self, city=None, crop=None, date=None, limit=100, skip=0):
         try:
             filter_query = {}
             if city:
@@ -114,13 +125,12 @@ class CropPriceAPI:
             cursor = self.collection.find(filter_query).skip(skip).limit(limit).sort("scraped_at", -1)
             results = list(cursor)
             total_count = self.collection.count_documents(filter_query)
-
             return results, total_count
         except Exception as e:
             logger.error(f"Error fetching crop prices: {e}")
             return [], 0
 
-    def get_latest_prices(self, city: Optional[str] = None, limit: int = 50):
+    def get_latest_prices(self, city=None, limit=50):
         try:
             filter_query = {}
             if city:
@@ -135,10 +145,7 @@ class CropPriceAPI:
 
     def get_price_comparison(self, crop: str, cities: List[str]):
         try:
-            filter_query = {
-                "crop": {"$regex": crop, "$options": "i"},
-                "city": {"$in": cities},
-            }
+            filter_query = {"crop": {"$regex": crop, "$options": "i"}, "city": {"$in": cities}}
             cursor = self.collection.find(filter_query).sort("scraped_at", -1)
             results = list(cursor)
             return results, len(results)
@@ -147,19 +154,18 @@ class CropPriceAPI:
             return [], 0
 
 
-# Initialize FastAPI app
+# --------------------------
+# FastAPI App Initialization
+# --------------------------
 app = FastAPI(
-    title="Crop Prices API",
-    description="API for accessing crop price data from Pakistan Agricultural Marketing Information Service",
+    title="Crop Prices & Chatbot API",
+    description="API for accessing crop price data and chatbot responses",
     version="1.0.0",
 )
 
-# ✅ CORS middleware must be after app is created
+# CORS
 allowed_origins = os.getenv("ALLOW_ORIGINS", "*")
-if allowed_origins == "*":
-    origins = ["*"]
-else:
-    origins = [o.strip() for o in allowed_origins.split(",") if o.strip()]
+origins = ["*"] if allowed_origins == "*" else [o.strip() for o in allowed_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -168,18 +174,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# DB connection
+db_api: Optional[CropPriceAPI] = None
 
-# Initialize database connection on startup and close on shutdown
-db_api: Optional[CropPriceAPI] = None  # CHANGED: initialize later
 
 @app.on_event("startup")
 async def on_startup():
     global db_api
     try:
         db_api = CropPriceAPI()
-        logger.info("API startup complete")
+        logger.info("🚀 API startup complete")
     except Exception as e:
         logger.exception(f"Startup failed: {e}")
+
 
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -187,13 +194,18 @@ async def on_shutdown():
     try:
         if db_api and db_api.client:
             db_api.client.close()
-            logger.info("MongoDB client closed")
+            logger.info("🛑 MongoDB client closed")
     except Exception as e:
         logger.exception(f"Shutdown cleanup failed: {e}")
 
+
+# --------------------------
+# Routes
+# --------------------------
 @app.get("/health", response_model=Dict[str, Any])
 async def health():
-    return {"status": "ok", "service": "crop-prices-api", "time": datetime.utcnow().isoformat()}
+    return {"status": "ok", "service": "crop-prices-chatbot-api", "time": datetime.utcnow().isoformat()}
+
 
 @app.get("/ready", response_model=Dict[str, Any])
 async def readiness():
@@ -209,7 +221,7 @@ async def readiness():
 @app.get("/", response_model=Dict[str, Any])
 async def root():
     return {
-        "message": "Crop Prices API",
+        "message": "Crop Prices & Chatbot API",
         "version": "1.0.0",
         "endpoints": {
             "/cities": "Get all available cities",
@@ -217,10 +229,13 @@ async def root():
             "/prices": "Get crop prices with filters",
             "/latest": "Get latest crop prices",
             "/compare": "Compare crop prices across cities",
+            "/stats": "Get database statistics",
+            "/chat/{thread_id}": "Chat with the AI assistant",
         },
     }
 
 
+# ----- Crop Price Endpoints -----
 @app.get("/cities")
 async def get_cities():
     if not db_api:
@@ -242,7 +257,6 @@ async def get_prices(city: Optional[str] = None, crop: Optional[str] = None, dat
                      limit: int = Query(100, ge=1, le=1000), skip: int = Query(0, ge=0)):
     if not db_api:
         raise HTTPException(status_code=500, detail="Database connection failed")
-
     results, total_count = db_api.get_crop_prices(city, crop, date, limit, skip)
     for result in results:
         result["_id"] = str(result["_id"])
@@ -303,6 +317,18 @@ async def get_stats():
         raise HTTPException(status_code=500, detail=f"Error fetching statistics: {str(e)}")
 
 
+# ----- Chatbot Endpoint -----
+@app.post("/chat/{thread_id}")
+async def chat(thread_id: str, chat_request: ChatRequest):
+    query = chat_request.query
+    CONFIG = {"configurable": {"thread_id": thread_id}}
+    response = chatbot.invoke({"messages": [HumanMessage(content=query)]}, config=CONFIG)
+    return {"response": response["messages"][-1].content}
+
+
+# --------------------------
+# Main entrypoint
+# --------------------------
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -310,5 +336,5 @@ if __name__ == "__main__":
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "8000")),
         reload=bool(int(os.getenv("UVICORN_RELOAD", "0"))),
-        log_level=os.getenv("LOG_LEVEL", "info").lower()
+        log_level=os.getenv("LOG_LEVEL", "info").lower(),
     )

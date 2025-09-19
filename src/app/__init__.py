@@ -9,9 +9,11 @@ App package initializer.
 from typing import Any
 from fastapi import FastAPI
 
-from .api import app  # The FastAPI instance defined in api.py
+# Import the FastAPI instance from api.py
+from .api import app
 
 __all__ = ["app", "get_app", "__version__"]
+
 __version__ = "1.0.0"
 
 
@@ -19,6 +21,7 @@ def get_app() -> FastAPI:
     """
     Return the FastAPI application instance.
 
-    Useful for ASGI servers or tooling that expects a callable to obtain the app.
+    Useful for ASGI servers or tooling that expects a callable
+    to obtain the app.
     """
     return app
