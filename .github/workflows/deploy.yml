@@ -24,13 +24,21 @@ jobs:
 
       - name: Deploy Backend via SSH
         run: |
-          ssh -i ~/.ssh/id_rsa root@206.189.140.248 "
-            cd /root/Price-Scrapping || \
-              git clone git@github.com:ABDULAHAD118/Price-Scrapping.git /root/Price-Scrapping;
+          ssh -i ~/.ssh/id_rsa root@206.189.140.248 << 'EOF'
+          cd /root/Price-Scrapping || git clone https://github.com/ABDULAHAD118/Price-Scrapping.git /root/Price-Scrapping
+          cd /root/Price-Scrapping
 
-            cd /root/Price-Scrapping &&
-            git pull origin main &&
-            source venv/bin/activate &&
-            pip install -r requirements.txt &&
-            sudo systemctl restart fastapi
-          "
+          # Pull latest code
+          git pull origin main
+
+          # Activate virtual environment
+          source venv/bin/activate
+
+          # Install/update dependencies
+          pip install -r requirements.txt
+
+          # Restart your FastAPI service
+          sudo systemctl restart fastapi
+
+          echo "✅ Deployment complete!"
+          EOF
