@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 # ✅ Chatbot imports
-from .chatbotWorkflow import chatbot_graph as chatbot
+from .chatbotWorkflow import chatbot, rs_analyzer
 from langchain_core.messages import HumanMessage
 
 
@@ -49,8 +49,19 @@ class APIResponse(BaseModel):
     message: Optional[str] = None
 
 
-class ChatRequest(BaseModel):  # ✅ For chatbot API
+class ChatRequest(BaseModel):
     query: str
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "گندم کی کاشت کا وقت؟"
+            }
+        }
+
+class ChatResponse(BaseModel):
+    response: str
+    field_analysis: Optional[dict] = None
 
 
 # --------------------------
@@ -230,7 +241,10 @@ async def root():
             "/latest": "Get latest crop prices",
             "/compare": "Compare crop prices across cities",
             "/stats": "Get database statistics",
-            "/chat/{thread_id}": "Chat with the AI assistant",
+            "chat": "/chat/{thread_id}",
+            "history": "/chat/{thread_id}/history",
+            "analyze": "/analyze-field",
+            "docs": "/docs"
         },
     }
 
@@ -317,24 +331,41 @@ async def get_stats():
         raise HTTPException(status_code=500, detail=f"Error fetching statistics: {str(e)}")
 
 
-# ----- Chatbot Endpoint -----
-@app.post("/chat/{thread_id}")
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+@app.post("/chat/{thread_id}", response_model=ChatResponse)
 async def chat(thread_id: str, chat_request: ChatRequest):
-    query = chat_request.query
-    CONFIG = {"configurable": {"thread_id": thread_id}}
-    response = chatbot.invoke({"messages": [HumanMessage(content=query)]}, config=CONFIG)
-    return {"response": response["messages"][-1].content}
+    try:
+        result = chatbot.invoke(message=chat_request.query, thread_id=thread_id)
+        return ChatResponse(response=result["response"], field_analysis=result.get("field_analysis"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/chat/{thread_id}/history")
+async def get_history(thread_id: str):
+    try:
+        messages = chatbot.get_history(thread_id)
+        return {"thread_id": thread_id, "message_count": len(messages), "messages": messages}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-# --------------------------
-# Main entrypoint
-# --------------------------
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        app,
-        host=os.getenv("HOST", "0.0.0.0"),
-        port=int(os.getenv("PORT", "8000")),
-        reload=bool(int(os.getenv("UVICORN_RELOAD", "0"))),
-        log_level=os.getenv("LOG_LEVEL", "info").lower(),
-    )
+@app.get("/analyze-field")
+async def analyze_field(lat: float, lon: float):
+    if not (23 <= lat <= 37 and 60 <= lon <= 78):
+        raise HTTPException(status_code=400, detail="Invalid Pakistan coordinates")
+    try:
+        return rs_analyzer.analyze_field(lat, lon)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.on_event("startup")
+async def startup():
+    print("""
+    ╔════════════════════════════════════╗
+    ║  🌾 Zuban-e-Kisan API Started 🌾 ║
+    ╚════════════════════════════════════╝
+    📡 http://localhost:8000
+    📖 http://localhost:8000/docs
+    """)
