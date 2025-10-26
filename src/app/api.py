@@ -244,7 +244,7 @@ async def root():
             "chat": "/chat/{thread_id}",
             "history": "/chat/{thread_id}/history",
             "analyze": "/analyze-field",
-            "docs": "/docs"
+            "docs": "/docs1"
         },
     }
 
