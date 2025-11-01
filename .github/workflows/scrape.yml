@@ -8,7 +8,6 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # Prevent hanging jobs
 
     steps:
     - name: Checkout repo
@@ -34,7 +33,6 @@ jobs:
         MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
       run: |
         python -m src.scraper.main
-      timeout-minutes: 120
 
     - name: Cache pip
       uses: actions/cache@v3
