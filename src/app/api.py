@@ -466,31 +466,69 @@ async def chat_socket(websocket: WebSocket, thread_id: str):
     await websocket.accept()
     print(f"🧠 Client connected on thread {thread_id}")
 
+    if not db_api:
+        print(f"❌ DB API not available for thread {thread_id}")
+        await websocket.close(code=1011, reason="Server error: DB not configured")
+        return
+
+    if not chatbot:
+        print(f"❌ Chatbot not available for thread {thread_id}")
+        await websocket.close(code=1011, reason="Server error: Chatbot not configured")
+        return
+
     try:
         while True:
-            # Receive message from client
+            # 1. Receive message from client
             message_data = await websocket.receive_text()
             data = json.loads(message_data)
             user_message = data.get("query", "")
 
             print(f"👤 User message ({thread_id}):", user_message)
 
-            # --- FIX: Simulate streaming response ---
-            # (No need for full_response variable here)
-            for i in range(5):
-                # Add the space to the chunk itself
-                chunk = f"Chunk {i + 1} of reply to '{user_message}' "
+            # 2. Save user message to DB
+            db_api.save_chat_message(
+                thread_id=thread_id,
+                sender="user",
+                message=user_message
+            )
 
-                # Send *only* the chunk
-                await websocket.send_text(json.dumps({"response": chunk}))
-                await asyncio.sleep(0.5)
+            full_response = ""
 
-            # --- FIX: Indicate completion ---
-            # Send *only* the done signal, without the response field
+            # 3. Stream response from your *real* chatbot
+            try:
+                async for chunk in chatbot.stream(message=user_message, thread_id=thread_id):
+                    if chunk:
+                        full_response += chunk
+                        # Send chunk to the client
+                        await websocket.send_text(json.dumps({"response": chunk}))
+
+            except Exception as e:
+                logger.error(f"Chatbot streaming error for thread {thread_id}: {e}")
+                await websocket.send_text(json.dumps({
+                    "response": "Sorry, an error occurred while generating a response."
+                }))
+
+            # 4. Save the full AI response to DB
+            if full_response.strip():
+                db_api.save_chat_message(
+                    thread_id=thread_id,
+                    sender="ai",
+                    message=full_response.strip()
+                )
+
+            # 5. Send the "done" signal
             await websocket.send_text(json.dumps({"done": True}))
 
     except WebSocketDisconnect:
         print(f"❌ Client disconnected from {thread_id}")
+    except Exception as e:
+        logger.error(f"Unexpected WebSocket error for thread {thread_id}: {e}")
+        try:
+            # Try to close gracefully if anything unexpected happens
+            await websocket.close(code=1011, reason=f"Unexpected server error")
+        except:
+            pass  # Connection might already be gone
+
 @app.get("/chat/{thread_id}/history")
 async def get_history(thread_id: str):
     if not db_api:
