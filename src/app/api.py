@@ -290,20 +290,39 @@ async def get_crops(city: Optional[str] = Query(None, description="Filter crops 
 
 
 @app.get("/prices")
-async def get_prices(city: Optional[str] = None, crop: Optional[str] = None, date: Optional[str] = None,
-                     limit: int = Query(100, ge=1, le=1000), skip: int = Query(0, ge=0)):
+async def get_prices(
+    city: Optional[str] = None,
+    crop: Optional[str] = None,
+    date: Optional[str] = None,
+    page: int = Query(1, ge=1),  # new param
+    limit: int = Query(100, ge=1, le=1000),
+):
     if not db_api:
         raise HTTPException(status_code=500, detail="Database connection failed")
+
+    # Calculate skip from page
+    skip = (page - 1) * limit
+
     results, total_count = db_api.get_crop_prices(city, crop, date, limit, skip)
+
     for result in results:
         result["_id"] = str(result["_id"])
+
+    total_pages = (total_count + limit - 1) // limit  # ceiling division
+
     return {
         "status": "success",
         "data": results,
-        "total_records": total_count,
-        "returned_records": len(results),
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total_pages": total_pages,
+            "total_records": total_count,
+            "returned_records": len(results),
+            "has_next": page < total_pages,
+            "has_prev": page > 1,
+        },
         "filters": {"city": city, "crop": crop, "date": date},
-        "pagination": {"limit": limit, "skip": skip},
     }
 
 
