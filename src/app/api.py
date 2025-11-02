@@ -1,14 +1,18 @@
 import os
 import logging
+import tempfile
+import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # ✅ Chatbot imports
 from .chatbotWorkflow import chatbot, rs_analyzer
@@ -19,11 +23,6 @@ from langchain_core.messages import HumanMessage
 # Load environment variables
 # --------------------------
 load_dotenv()
-
-# --------------------------
-# Configure logging
-# --------------------------
-
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger(__name__)
 
@@ -59,11 +58,6 @@ class ChatRequest(BaseModel):
             }
         }
 
-class ChatResponse(BaseModel):
-    response: str
-    field_analysis: Optional[dict] = None
-
-
 # --------------------------
 # Database Layer
 # --------------------------
@@ -87,6 +81,7 @@ class CropPriceAPI:
             db_name = os.getenv("MONGODB_DB_NAME", database_name)
             self.db = self.client[db_name]
             self.collection = self.db.crop_prices
+            self.chat_history_collection = self.db.chat_history
 
             # Test connection
             self.client.admin.command("ping")
@@ -100,10 +95,16 @@ class CropPriceAPI:
 
     def create_indexes(self):
         try:
+            # Crop prices indexes
             self.collection.create_index("city")
             self.collection.create_index("crop")
             self.collection.create_index("date")
             self.collection.create_index("scraped_at")
+
+            # Chat history indexes
+            self.chat_history_collection.create_index("thread_id")
+            self.chat_history_collection.create_index("timestamp")
+
             logger.info("✅ Indexes created successfully")
         except Exception as e:
             logger.error(f"Failed to create indexes: {e}")
@@ -163,6 +164,27 @@ class CropPriceAPI:
         except Exception as e:
             logger.error(f"Error fetching price comparison: {e}")
             return [], 0
+
+    def save_chat_message(self, thread_id: str, sender: str, message: str):
+        try:
+            doc = {
+                "thread_id": thread_id,
+                "sender": sender,
+                "message": message,
+                "timestamp": datetime.utcnow()
+            }
+            self.chat_history_collection.insert_one(doc)
+            logger.info(f"Saved chat message for thread {thread_id}")
+        except Exception as e:
+            logger.error(f"Error saving chat message for thread {thread_id}: {e}")
+
+    def get_chat_history(self, thread_id: str):
+        try:
+            cursor = self.chat_history_collection.find({"thread_id": thread_id}).sort("timestamp", 1)
+            return list(cursor)
+        except Exception as e:
+            logger.error(f"Error fetching chat history for thread {thread_id}: {e}")
+            return []
 
 
 # --------------------------
@@ -243,8 +265,9 @@ async def root():
             "/stats": "Get database statistics",
             "chat": "/chat/{thread_id}",
             "history": "/chat/{thread_id}/history",
+            "transcribe": "/chat/transcribe",
             "analyze": "/analyze-field",
-            "docs": "/docs1"
+            "docs": "/docs"
         },
     }
 
@@ -335,21 +358,127 @@ async def get_stats():
 async def health():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-@app.post("/chat/{thread_id}", response_model=ChatResponse)
-async def chat(thread_id: str, chat_request: ChatRequest):
+
+@app.post("/chat/transcribe")
+async def transcribe_audio(
+    audio: UploadFile = File(..., description="Audio file (M4A format supported)"),
+    language: str = Form(default="ur", description="Language code (default: 'ur' for Urdu)")
+):
+    """
+    Transcribe audio to text using OpenAI Whisper API.
+    
+    Accepts audio files in various formats (M4A, MP3, WAV, etc.) and returns transcribed text.
+    Default language is Urdu ('ur').
+    
+    Returns:
+        - transcript: Transcribed text (if successful)
+        - text: Alternative field name for transcribed text
+    """
     try:
-        result = chatbot.invoke(message=chat_request.query, thread_id=thread_id)
-        return ChatResponse(response=result["response"], field_analysis=result.get("field_analysis"))
+        # Get OpenAI API key from environment
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+            logger.error("OPENAI_API_KEY not found in environment variables")
+            raise HTTPException(
+                status_code=500,
+                detail="OpenAI API key not configured. Please set OPENAI_API_KEY environment variable."
+            )
+        
+        # Initialize OpenAI client
+        client = OpenAI(api_key=openai_api_key)
+        
+        # Read audio file content
+        audio_content = await audio.read()
+        
+        # Save to temporary file (OpenAI API requires file-like object)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{audio.filename.split('.')[-1]}") as temp_file:
+            temp_file.write(audio_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Transcribe using OpenAI Whisper API
+            with open(temp_file_path, "rb") as audio_file:
+                # Whisper supports Urdu language code "ur" and many other languages
+                # If language is specified, use it; otherwise let Whisper auto-detect
+                transcription_params = {
+                    "model": "whisper-1",
+                    "file": audio_file,
+                    "response_format": "json"
+                }
+                # Only set language if explicitly provided and not empty
+                if language and language.strip():
+                    transcription_params["language"] = language.strip()
+                
+                transcript_response = client.audio.transcriptions.create(**transcription_params)
+            
+            # Extract transcript text
+            transcript_text = transcript_response.text
+            
+            logger.info(f"✅ Successfully transcribed audio: {len(transcript_text)} characters, language: {language}")
+            
+            # Return in the format expected by the frontend
+            # Supports both "transcript" and "text" fields for compatibility
+            return {
+                "transcript": transcript_text,
+                "text": transcript_text
+            }
+            
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(temp_file_path)
+            except Exception as e:
+                logger.warning(f"Failed to delete temporary file {temp_file_path}: {e}")
+                
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Error transcribing audio: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to transcribe audio: {str(e)}"
+        )
+
+
+@app.post("/chat/{thread_id}")
+async def chat(thread_id: str, chat_request: ChatRequest):
+    if not db_api:
+        raise HTTPException(status_code=500, detail="Database connection not available")
+
+    # Save user message
+    db_api.save_chat_message(thread_id=thread_id, sender="user", message=chat_request.query)
+
+    async def response_generator():
+        full_response = ""
+        try:
+            async for chunk in chatbot.stream(message=chat_request.query, thread_id=thread_id):
+                if chunk:
+                    full_response += chunk
+                    yield f"data: {json.dumps({'response': chunk})}\n\n"
+        finally:
+            # Save the full AI response once the stream is complete
+            if full_response.strip():
+                db_api.save_chat_message(thread_id=thread_id, sender="ai", message=full_response)
+
+    try:
+        return StreamingResponse(response_generator(), media_type="text/event-stream")
+    except Exception as e:
+        logger.error(f"Chat streaming error for thread {thread_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/chat/{thread_id}/history")
 async def get_history(thread_id: str):
+    if not db_api:
+        raise HTTPException(status_code=500, detail="Database connection not available")
     try:
-        messages = chatbot.get_history(thread_id)
+        messages = db_api.get_chat_history(thread_id)
+        # Convert ObjectId to string for JSON serialization
+        for message in messages:
+            message["_id"] = str(message["_id"])
         return {"thread_id": thread_id, "message_count": len(messages), "messages": messages}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/analyze-field")
 async def analyze_field(lat: float, lon: float):
@@ -362,10 +491,10 @@ async def analyze_field(lat: float, lon: float):
 
 @app.on_event("startup")
 async def startup():
-    print("""
+    print(f"""
     ╔════════════════════════════════════╗
     ║  🌾 Zuban-e-Kisan API Started 🌾 ║
     ╚════════════════════════════════════╝
-    📡 http://localhost:8000
-    📖 http://localhost:8000/docs
+    📡 http://{os.getenv("HOST")}:{os.getenv("PORT")}
+    📖 http://{os.getenv("HOST")}:{os.getenv("PORT")}/docs
     """)

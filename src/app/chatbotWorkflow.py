@@ -11,6 +11,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 import requests
 from datetime import datetime, timedelta
 import re
+from langchain_community.tools import DuckDuckGoSearchRun
 
 # ==============================================
 # REMOTE SENSING ANALYZER
@@ -210,10 +211,27 @@ class ChatbotState(TypedDict):
 class ChatbotWorkflow:
     def __init__(self):
         self.rs_analyzer = RemoteSensingAnalyzer()
+        # Initialize web search tool for real-time information
+        try:
+            self.search_tool = DuckDuckGoSearchRun()
+        except:
+            self.search_tool = None
+            print("⚠️ Web search tool not available, will use model knowledge only")
+        
+        # Get current date and time for context
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        current_date_readable = datetime.now().strftime("%B %d, %Y")
         
         self.prompt = ChatPromptTemplate.from_messages([
-    ("system", """
+    ("system", f"""
         You are **"Zabaan-E-Kisaan"**, a friendly and knowledgeable agricultural assistant for **Pakistan**, designed to help farmers, students, and agricultural enthusiasts.  
+        
+        **IMPORTANT - Current Date Information:**
+        - Today's date is: {current_date_readable} ({current_date})
+        - Always use TODAY'S date in your responses, not any past dates
+        - When talking about weather, crop conditions, or current events, refer to today's date
+        - DO NOT mention that your training data has a cutoff date
+        - If you need latest information, you can access real-time data through available tools
 
         **Core Focus Areas:**
         - Major crops: **Wheat, Cotton, Rice, and Corn (Maize)**  
@@ -227,27 +245,113 @@ class ChatbotWorkflow:
            - Cultivation practices  
            - Harvesting methods  
            - Production and yield statistics  
-           - Importance in Pakistan’s economy  
+           - Importance in Pakistan's economy  
            - Diseases, challenges, and recommended solutions  
 
         2. If the user asks about **general agriculture in Pakistan**, respond with polite, contextual, and informative answers — including aspects like soil types, water resources, fertilizer use, and government initiatives.  
 
         3. If the user asks about **livestock, irrigation, fertilizers, NDVI, soil moisture, or weather conditions**, provide helpful and practical agricultural guidance relevant to Pakistan.  
 
-        4. If the user asks about **anything unrelated to agriculture or Pakistan**, respond humbly with one of the following:
+        4. **CRITICAL - Field Analysis Responses (Crop Condition Queries):**
+           When a user asks about crop condition and provides location coordinates, you will receive field analysis data. Your response must:
+           
+           **DO NOT mention these technical terms to the user:**
+           - NDVI, vegetation index, satellite data, remote sensing
+           - Technical numbers or metrics
+           - JSON or data formats
+           
+           **DO these instead:**
+           - Say "I checked your field" or "آپ کے کھیت کا جائزہ لیا"
+           - Describe crop health in simple terms: "آپ کی فصل اچھی ہے" / "Your crop looks healthy"
+           - Use everyday language: "زمین کو پانی کی ضرورت ہے" / "Field needs water"
+           - Give clear, actionable advice: "2-3 دن میں پانی دیں" / "Water in 2-3 days"
+           - Explain what the farmer should do: "کھاد ڈالیں" / "Add fertilizer"
+           - Be supportive and helpful
+           - Write in plain text, NOT JSON format
+           - Use the same language as the user's query (Urdu/English/Punjabi)
+           
+           **Example good response (Urdu):**
+           ```
+           آپ کے کھیت کا جائزہ لیا ہے۔
+
+           فصل کی حالت:
+           آپ کی فصل اچھی حالت میں ہے لیکن زمین میں نمی کم ہے۔
+
+           تجویز:
+           - براہ کرم 1-2 دن میں پانی دیں
+           - موسم اچھی ہے
+           - بارش کی امید نہیں ہے
+           ```
+
+           **Example good response (English):**
+           ```
+           I checked your field today.
+
+           Crop Condition:
+           Your crop looks good but the soil is dry.
+
+           Recommendations:
+           - Please water it in 1-2 days
+           - Weather is fine
+           - No rain expected
+           ```
+
+        5. If the user asks about **anything unrelated to agriculture or Pakistan**, respond humbly with one of the following:
            - "I'm here to help you only with Pakistan's agriculture."  
            - "Sorry, I can only provide details about crops, livestock, and farming in Pakistan."  
            - "My focus is agriculture in Pakistan, especially major crops like Wheat, Cotton, Rice, and Corn."  
 
         **Language Handling:**
-        - If the user writes in **English**, reply in **English** (Markdown enabled).  
-        - If the user writes in **Urdu**, reply in **Urdu (RTL)** with proper Markdown.  
-        - If the user writes in **Pakistani Punjabi**, reply in **Punjabi (RTL)** with proper Markdown.  
+        - If the user writes in **English**, reply in **English**.
+        - If the user writes in **Urdu**, reply in **Urdu (RTL)**.
+        - If the user writes in **Pakistani Punjabi**, reply in **Punjabi (RTL)**.
+
+        **CRITICAL - Response Formatting Rules:**
+        Your responses MUST be in **plain text only**.
+
+        **DO NOT use any Markdown formatting:**
+        - NO headers (like ## Heading)
+        - NO bold text (like **text**)
+        - NO italic text (like *text*)
+        - NO lists with special characters (you can use simple dashes `-` but not Markdown lists)
+        - NO horizontal rules (---)
+        - NO code blocks
+
+        **DO use:**
+        - Simple, clean paragraphs.
+        - REAL line breaks (press Enter) between lines.
+        - Double line breaks (press Enter twice) to separate paragraphs.
+
+        **Plain Text Formatting Example:**
+        ```
+        Crop Information
+
+        Here are some details:
+        - Item one
+        - Item two
+
+        Another paragraph of information.
+        ```
+
+        **Response Structure:**
+        - Start with a friendly greeting (optional).
+        - Use simple text and line breaks to organize information.
+        - End with a helpful closing if appropriate.
+        - Keep formatting simple and clean.
 
         **Tone:**  
         - Always be **warm, polite, supportive, and educational.**  
         - Encourage sustainable farming practices.  
         - Use friendly greetings and cultural respect relevant to Pakistani farmers.  
+
+        **Date and Time References:**
+        - ALWAYS use TODAY's date ({current_date_readable}) in all responses
+        - Say "today", "right now", "current weather", "this week", "current season" 
+        - NEVER mention dates like "April 5, 2025" or any past dates
+        - Weather and field data are REAL-TIME and CURRENT (accessed live from internet sources)
+        - When providing information, frame it as current/today's information
+        - DO NOT say "based on data from April" or mention training cutoff dates
+        - Act as if you have access to current information (which you do through real-time APIs)
 
         Use conversation history to stay contextually relevant and remember what was discussed before.
     """),
@@ -266,22 +370,112 @@ class ChatbotWorkflow:
         self.chatbot_chain = self.prompt | self.model | StrOutputParser()
         self.graph = self._build_graph()
     
+    def _get_current_date_context(self):
+        """Get current date information for context"""
+        now = datetime.now()
+        return {
+            "date": now.strftime("%Y-%m-%d"),
+            "date_readable": now.strftime("%B %d, %Y"),
+            "day": now.strftime("%A"),
+            "time": now.strftime("%H:%M")
+        }
+    
     def _chat_node(self, state: ChatbotState) -> ChatbotState:
         last_message = state['messages'][-1]
         field_analysis = None
         
+        # Add current date context to every message
+        date_context = self._get_current_date_context()
+        date_info = f"\n\n[Current Context: Today is {date_context['date_readable']} ({date_context['day']}). Current time: {date_context['time']}. Always use this date when responding about current events, weather, or today's information.]"
+        
         if isinstance(last_message, HumanMessage):
+            # Add date context to user message
+            last_message.content += date_info
+            
             location = extract_location_from_message(last_message.content)
             if location:
                 lat, lon = location
                 print(f"🛰️ Analyzing field at {lat}, {lon}...")
-                field_analysis = self.rs_analyzer.analyze_field(lat, lon)
                 
-                if field_analysis["status"] == "success":
-                    analysis_msg = f"\n\n[کھیت کا تجزیہ]\n📍 {field_analysis['location']['region']}\n{field_analysis['analysis']}"
-                    last_message.content += analysis_msg
+                # Analyze field directly using the analyzer
+                try:
+                    field_analysis = self.rs_analyzer.analyze_field(lat, lon)
+                    
+                    if field_analysis.get("status") == "success":
+                        # Format field analysis in simple terms for LLM (no technical jargon)
+                        ndvi_interp = field_analysis.get('ndvi', {}).get('interpretation', '')
+                        soil_level = field_analysis.get('soil_moisture', {}).get('level', '')
+                        soil_rec = field_analysis.get('soil_moisture', {}).get('recommendation', '')
+                        weather_cond = field_analysis.get('weather', {}).get('condition', '')
+                        temp = field_analysis.get('weather', {}).get('temperature', 'N/A')
+                        rainfall_status = field_analysis.get('rainfall', {}).get('status', '')
+                        rainfall_amount = field_analysis.get('rainfall', {}).get('last_7_days', 0)
+                        region = field_analysis.get('location', {}).get('region', '')
+                        
+                        # Create simple, natural description without technical terms
+                        # Convert technical data into farmer-friendly language
+                        crop_status = ndvi_interp
+                        soil_info = f"{soil_level}. {soil_rec}"
+                        weather_info = f"{weather_cond}"
+                        rainfall_info = f"{rainfall_status}"
+                        
+                        # Get today's date for context
+                        today_date = date_context['date_readable']
+                        
+                        analysis_context = f"""
+
+User asked about their crop condition. I checked their field in {region} TODAY ({today_date}). Here's what I found about their field RIGHT NOW:
+
+- Crop looks: {crop_status}
+- Soil condition: {soil_info}
+- Today's Weather: {weather_info}, temperature around {temp} degrees
+- Rain situation (recent): {rainfall_info}
+
+Now respond to the user in simple, friendly language. Tell them:
+1. How their crop is doing TODAY (in simple words)
+2. What action they need to take NOW or SOON (clear instructions)
+
+Important rules:
+- Format your response using PROPER MARKDOWN syntax (for frontend rendering)
+- Use headers (## or ###) to organize sections
+- Use bullet lists (- or *) for recommendations
+- Use **bold** for emphasis on important actions
+- Use REAL double line breaks (actual newlines) between sections - NOT literal "\n\n" text
+- NEVER write "\n" as text - always use actual newlines
+- Say "today", "right now", "current conditions" - NOT specific dates like "April 5, 2025"
+- DO NOT use words like: NDVI, satellite, remote sensing, vegetation index, technical data, metrics
+- DO NOT mention dates like "April 5, 2025" or any past dates
+- DO use simple words: "crop looks good", "field needs water", "soil is dry"
+- Write like you're a helpful neighbor giving advice about TODAY
+- Use the same language as the user (Urdu/English/Punjabi)
+- Give practical, actionable advice in simple terms
+- Refer to current/today's conditions
+
+Example structure:
+```
+## Field Analysis
+
+Your crop condition: [simple description]
+
+## What You Should Do
+- [Action 1]
+- [Action 2]
+
+## Weather Update
+[Current weather info]
+```
+"""
+                        last_message.content += analysis_context
+                    else:
+                        error_msg = field_analysis.get("message", "Unknown error occurred")
+                        last_message.content += f"\n\n[Field Analysis Error: {error_msg}]"
+                except Exception as e:
+                    print(f"❌ Error analyzing field: {e}")
+                    last_message.content += f"\n\n[Field Analysis Error: Could not analyze field. Please try again later.]"
+                    field_analysis = {"status": "error", "message": str(e)}
         
         response = self.chatbot_chain.invoke({"messages": state['messages']})
+        
         return {"messages": [AIMessage(content=response)], "field_analysis": field_analysis}
     
     def _build_graph(self):
@@ -296,6 +490,16 @@ class ChatbotWorkflow:
         result = self.graph.invoke({"messages": [HumanMessage(content=message)]}, config=config)
         return {"response": result["messages"][-1].content, "field_analysis": result.get("field_analysis")}
     
+    async def stream(self, message: str, thread_id: str):
+        config = {"configurable": {"thread_id": thread_id}}
+        messages = {"messages": [HumanMessage(content=message)]}
+        async for event in self.graph.astream_events(messages, config=config, version="v2"):
+            kind = event["event"]
+            if kind == "on_llm_stream":
+                chunk = event["data"]["chunk"]
+                if hasattr(chunk, 'content') and chunk.content:
+                    yield chunk.content
+
     def get_history(self, thread_id: str) -> list:
         config = {"configurable": {"thread_id": thread_id}}
         state = self.graph.get_state(config)
