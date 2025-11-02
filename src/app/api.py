@@ -466,9 +466,14 @@ async def chat_socket(websocket: WebSocket, thread_id: str):
     await websocket.accept()
     print(f"🧠 Client connected on thread {thread_id}")
 
-    if not db_api or not chatbot:
-        print(f"❌ DB or Chatbot not available for thread {thread_id}")
-        await websocket.close(code=1011, reason="Server error: Not configured")
+    if not db_api:
+        print(f"❌ DB API not available for thread {thread_id}")
+        await websocket.close(code=1011, reason="Server error: DB not configured")
+        return
+
+    if not chatbot:
+        print(f"❌ Chatbot not available for thread {thread_id}")
+        await websocket.close(code=1011, reason="Server error: Chatbot not configured")
         return
 
     try:
@@ -477,8 +482,6 @@ async def chat_socket(websocket: WebSocket, thread_id: str):
             message_data = await websocket.receive_text()
             data = json.loads(message_data)
             user_message = data.get("query", "")
-            if not user_message:
-                continue
 
             print(f"👤 User message ({thread_id}):", user_message)
 
@@ -496,6 +499,7 @@ async def chat_socket(websocket: WebSocket, thread_id: str):
                 async for chunk in chatbot.stream(message=user_message, thread_id=thread_id):
                     if chunk:
                         full_response += chunk
+                        # Send chunk to the client
                         await websocket.send_text(json.dumps({"response": chunk}))
 
             except Exception as e:
@@ -516,26 +520,14 @@ async def chat_socket(websocket: WebSocket, thread_id: str):
             await websocket.send_text(json.dumps({"done": True}))
 
     except WebSocketDisconnect:
-        # This is a clean disconnect (client closed the app)
         print(f"❌ Client disconnected from {thread_id}")
-
-    # --- THIS IS THE FIX ---
-    # Catch the specific error from your log
-    except RuntimeError as e:
-        if "ConnectionState.CLOSED" in str(e):
-            # This is an abrupt disconnect, log it as info, not an error
-            print(f"⚠️ Client disconnected abruptly from {thread_id}. (ConnectionState.CLOSED)")
-        else:
-            # It was a different, unexpected RuntimeError
-            logger.error(f"Unexpected WebSocket RuntimeError for thread {thread_id}: {e}")
-
     except Exception as e:
-        # Catch any other unexpected errors
         logger.error(f"Unexpected WebSocket error for thread {thread_id}: {e}")
-
-    finally:
-        # This block just helps confirm the function is exiting
-        print(f"🔒 Closing connection handler for {thread_id}")
+        try:
+            # Try to close gracefully if anything unexpected happens
+            await websocket.close(code=1011, reason=f"Unexpected server error")
+        except:
+            pass  # Connection might already be gone
 
 @app.get("/chat/{thread_id}/history")
 async def get_history(thread_id: str):
