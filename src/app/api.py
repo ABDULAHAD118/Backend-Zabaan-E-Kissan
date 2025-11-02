@@ -5,7 +5,7 @@ import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
@@ -13,6 +13,8 @@ from pymongo.errors import ConnectionFailure
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
+import json
+import asyncio
 
 # ✅ Chatbot imports
 from .chatbotWorkflow import chatbot, rs_analyzer
@@ -459,35 +461,36 @@ async def transcribe_audio(
         )
 
 
-@app.post("/chat/{thread_id}")
-async def chat(thread_id: str, chat_request: ChatRequest):
-    if not db_api:
-        raise HTTPException(status_code=500, detail="Database connection not available")
-
-    db_api.save_chat_message(thread_id=thread_id, sender="user", message=chat_request.query)
-
-    async def response_generator():
-        full_response = ""
-        try:
-            async for chunk in chatbot.stream(message=chat_request.query, thread_id=thread_id):
-                if chunk:
-                    full_response += chunk
-                    yield (
-                        f"id: {thread_id}\r\n"
-                        f"event: message\r\n"
-                        f"data: {json.dumps({'response': chunk})}\r\n\r\n"
-                    )
-        finally:
-            if full_response.strip():
-                db_api.save_chat_message(thread_id=thread_id, sender="ai", message=full_response)
+@app.websocket("/chat/{thread_id}")
+async def chat_socket(websocket: WebSocket, thread_id: str):
+    await websocket.accept()
+    print(f"🧠 Client connected on thread {thread_id}")
 
     try:
-        return StreamingResponse(response_generator(), media_type="text/event-stream")
-    except Exception as e:
-        logger.error(f"Chat streaming error for thread {thread_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        while True:
+            # Receive message from client
+            message_data = await websocket.receive_text()
+            data = json.loads(message_data)
+            user_message = data.get("query", "")
 
+            print(f"👤 User message ({thread_id}):", user_message)
 
+            # --- FIX: Simulate streaming response ---
+            # (No need for full_response variable here)
+            for i in range(5):
+                # Add the space to the chunk itself
+                chunk = f"Chunk {i + 1} of reply to '{user_message}' "
+
+                # Send *only* the chunk
+                await websocket.send_text(json.dumps({"response": chunk}))
+                await asyncio.sleep(0.5)
+
+            # --- FIX: Indicate completion ---
+            # Send *only* the done signal, without the response field
+            await websocket.send_text(json.dumps({"done": True}))
+
+    except WebSocketDisconnect:
+        print(f"❌ Client disconnected from {thread_id}")
 @app.get("/chat/{thread_id}/history")
 async def get_history(thread_id: str):
     if not db_api:
