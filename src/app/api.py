@@ -464,7 +464,6 @@ async def chat(thread_id: str, chat_request: ChatRequest):
     if not db_api:
         raise HTTPException(status_code=500, detail="Database connection not available")
 
-    # Save user message
     db_api.save_chat_message(thread_id=thread_id, sender="user", message=chat_request.query)
 
     async def response_generator():
@@ -473,9 +472,12 @@ async def chat(thread_id: str, chat_request: ChatRequest):
             async for chunk in chatbot.stream(message=chat_request.query, thread_id=thread_id):
                 if chunk:
                     full_response += chunk
-                    yield f"data: {json.dumps({'response': chunk})}\n\n"
+                    yield (
+                        f"id: {thread_id}\r\n"
+                        f"event: message\r\n"
+                        f"data: {json.dumps({'response': chunk})}\r\n\r\n"
+                    )
         finally:
-            # Save the full AI response once the stream is complete
             if full_response.strip():
                 db_api.save_chat_message(thread_id=thread_id, sender="ai", message=full_response)
 
@@ -484,6 +486,7 @@ async def chat(thread_id: str, chat_request: ChatRequest):
     except Exception as e:
         logger.error(f"Chat streaming error for thread {thread_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/chat/{thread_id}/history")
 async def get_history(thread_id: str):
