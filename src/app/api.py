@@ -5,7 +5,7 @@ import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
@@ -13,6 +13,8 @@ from pymongo.errors import ConnectionFailure
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
+import json
+import asyncio
 
 # ✅ Chatbot imports
 from .chatbotWorkflow import chatbot, rs_analyzer
@@ -459,31 +461,81 @@ async def transcribe_audio(
         )
 
 
-@app.post("/chat/{thread_id}")
-async def chat(thread_id: str, chat_request: ChatRequest):
-    if not db_api:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+@app.websocket("/chat/{thread_id}")
+async def chat_socket(websocket: WebSocket, thread_id: str):
+    await websocket.accept()
+    print(f"🧠 Client connected on thread {thread_id}")
 
-    # Save user message
-    db_api.save_chat_message(thread_id=thread_id, sender="user", message=chat_request.query)
-
-    async def response_generator():
-        full_response = ""
-        try:
-            async for chunk in chatbot.stream(message=chat_request.query, thread_id=thread_id):
-                if chunk:
-                    full_response += chunk
-                    yield f"data: {json.dumps({'response': chunk})}\n\n"
-        finally:
-            # Save the full AI response once the stream is complete
-            if full_response.strip():
-                db_api.save_chat_message(thread_id=thread_id, sender="ai", message=full_response)
+    if not db_api or not chatbot:
+        print(f"❌ DB or Chatbot not available for thread {thread_id}")
+        await websocket.close(code=1011, reason="Server error: Not configured")
+        return
 
     try:
-        return StreamingResponse(response_generator(), media_type="text/event-stream")
+        while True:
+            # 1. Receive message from client
+            message_data = await websocket.receive_text()
+            data = json.loads(message_data)
+            user_message = data.get("query", "")
+            if not user_message:
+                continue
+
+            print(f"👤 User message ({thread_id}):", user_message)
+
+            # 2. Save user message to DB
+            db_api.save_chat_message(
+                thread_id=thread_id,
+                sender="user",
+                message=user_message
+            )
+
+            full_response = ""
+
+            # 3. Stream response from your *real* chatbot
+            try:
+                async for chunk in chatbot.stream(message=user_message, thread_id=thread_id):
+                    if chunk:
+                        full_response += chunk
+                        await websocket.send_text(json.dumps({"response": chunk}))
+
+            except Exception as e:
+                logger.error(f"Chatbot streaming error for thread {thread_id}: {e}")
+                await websocket.send_text(json.dumps({
+                    "response": "Sorry, an error occurred while generating a response."
+                }))
+
+            # 4. Save the full AI response to DB
+            if full_response.strip():
+                db_api.save_chat_message(
+                    thread_id=thread_id,
+                    sender="ai",
+                    message=full_response.strip()
+                )
+
+            # 5. Send the "done" signal
+            await websocket.send_text(json.dumps({"done": True}))
+
+    except WebSocketDisconnect:
+        # This is a clean disconnect (client closed the app)
+        print(f"❌ Client disconnected from {thread_id}")
+
+    # --- THIS IS THE FIX ---
+    # Catch the specific error from your log
+    except RuntimeError as e:
+        if "ConnectionState.CLOSED" in str(e):
+            # This is an abrupt disconnect, log it as info, not an error
+            print(f"⚠️ Client disconnected abruptly from {thread_id}. (ConnectionState.CLOSED)")
+        else:
+            # It was a different, unexpected RuntimeError
+            logger.error(f"Unexpected WebSocket RuntimeError for thread {thread_id}: {e}")
+
     except Exception as e:
-        logger.error(f"Chat streaming error for thread {thread_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Catch any other unexpected errors
+        logger.error(f"Unexpected WebSocket error for thread {thread_id}: {e}")
+
+    finally:
+        # This block just helps confirm the function is exiting
+        print(f"🔒 Closing connection handler for {thread_id}")
 
 @app.get("/chat/{thread_id}/history")
 async def get_history(thread_id: str):
