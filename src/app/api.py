@@ -497,6 +497,7 @@ async def chat_socket(websocket: WebSocket, thread_id: str):
             # 3. Stream response from your *real* chatbot
             try:
                 async for chunk in chatbot.stream(message=user_message, thread_id=thread_id):
+                    print("chunk:" ,chunk)
                     if chunk:
                         full_response += chunk
                         # Send chunk to the client
