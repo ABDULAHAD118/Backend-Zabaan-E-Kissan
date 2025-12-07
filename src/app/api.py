@@ -135,6 +135,8 @@ class CropPriceAPI:
                 filter_query["crop"] = {"$regex": crop, "$options": "i"}
             if date:
                 filter_query["date"] = date
+            filter_query["min_price"] = {"$nin": ["", "-", None]}
+            filter_query["max_price"] = {"$nin": ["", "-", None]}
 
             cursor = self.collection.find(filter_query).skip(skip).limit(limit).sort("scraped_at", -1)
             results = list(cursor)
