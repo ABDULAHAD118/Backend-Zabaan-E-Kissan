@@ -150,7 +150,7 @@ class CropPriceAPI:
         try:
             filter_query = {}
             if city:
-                filter_query["city"] = { "$regex": re.escape(city), "$options": "i"}
+                filter_query["city"] = city.strip()
             if crop:
                 filter_query["crop"] = crop.strip()
             if date:
