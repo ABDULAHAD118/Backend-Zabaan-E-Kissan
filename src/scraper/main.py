@@ -330,13 +330,14 @@ def scrape_city_prices(city_name, url, driver, db, max_retries=3):
                     if not name or name.isspace():
                         continue
 
-                    data.append({
-                        "crop": name,
-                        "min_price": min_price,
-                        "max_price": max_price,
-                        "fqp": fqp,
-                        "quantity": quantity
-                    })
+                    if min_price and max_price and min_price != "-" and max_price != "-":
+                        data.append({
+                            "crop": name,
+                            "min_price": min_price,
+                            "max_price": max_price,
+                            "fqp": fqp,
+                            "quantity": quantity
+                        })
                 except (IndexError, AttributeError) as e:
                     logger.debug(f"Skipping malformed row in {city_name}: {e}")
                     continue

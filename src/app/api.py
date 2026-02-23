@@ -28,6 +28,25 @@ load_dotenv()
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger(__name__)
 
+# --------------------------
+# FastAPI App Initialization
+# --------------------------
+app = FastAPI(
+    title="Crop Prices & Chatbot API",
+    description="API for accessing crop price data and chatbot responses",
+    version="1.0.0",
+)
+
+# CORS
+allowed_origins = os.getenv("ALLOW_ORIGINS", "*")
+origins = ["*"] if allowed_origins == "*" else [o.strip() for o in allowed_origins.split(",") if o.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --------------------------
 # Pydantic models
@@ -126,13 +145,14 @@ class CropPriceAPI:
             logger.error(f"Error fetching crops: {e}")
             return []
 
-    def get_crop_prices(self, city=None, crop=None, date=None, limit=100, skip=0):
+
+    def get_crop_prices(self, city=None, crop=None, date=None, limit=20, skip=0):
         try:
             filter_query = {}
             if city:
-                filter_query["city"] = {"$regex": city, "$options": "i"}
+                filter_query["city"] = { "$regex": re.escape(city), "$options": "i"}
             if crop:
-                filter_query["crop"] = {"$regex": crop, "$options": "i"}
+                filter_query["crop"] = {"$regex": re.escape(crop),  "$options": "i"}
             if date:
                 filter_query["date"] = date
             filter_query["min_price"] = {"$nin": ["", "-", None]}
@@ -145,7 +165,6 @@ class CropPriceAPI:
         except Exception as e:
             logger.error(f"Error fetching crop prices: {e}")
             return [], 0
-
     def get_latest_prices(self, city=None, limit=50):
         try:
             filter_query = {}
@@ -191,25 +210,6 @@ class CropPriceAPI:
             return []
 
 
-# --------------------------
-# FastAPI App Initialization
-# --------------------------
-app = FastAPI(
-    title="Crop Prices & Chatbot API",
-    description="API for accessing crop price data and chatbot responses",
-    version="1.0.0",
-)
-
-# CORS
-allowed_origins = os.getenv("ALLOW_ORIGINS", "*")
-origins = ["*"] if allowed_origins == "*" else [o.strip() for o in allowed_origins.split(",") if o.strip()]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # DB connection
 db_api: Optional[CropPriceAPI] = None
@@ -299,7 +299,7 @@ async def get_prices(
     crop: Optional[str] = None,
     date: Optional[str] = None,
     page: int = Query(1, ge=1),  # new param
-    limit: int = Query(100, ge=1, le=1000),
+    limit: int = Query(20, ge=1, le=1000),
 ):
     if not db_api:
         raise HTTPException(status_code=500, detail="Database connection failed")
