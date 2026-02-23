@@ -110,6 +110,7 @@ class RemoteSensingAnalyzer:
             
             if response.status_code == 200:
                 data = response.json()
+                print(data)
                 params_data = data.get("parameters", {})
                 
                 gwetroot = list(params_data.get("GWETROOT", {0.3: 0.3}).values())[-1]
@@ -221,7 +222,7 @@ class ChatbotWorkflow:
         # Get current date and time for context
         current_date = datetime.now().strftime("%Y-%m-%d")
         current_date_readable = datetime.now().strftime("%B %d, %Y")
-        
+        print(f"📅 Current date: {current_date_readable} ({current_date})")
         self.prompt = ChatPromptTemplate.from_messages([
     ("system", f"""
         آپ **"زبانِ کسان"** ہیں، پاکستان کے کسانوں، طلباء اور زراعت سے محبت کرنے والوں کی مدد کے لیے ایک دوستانہ اور باشعور زرعی معاون۔

@@ -28,6 +28,25 @@ load_dotenv()
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger(__name__)
 
+# --------------------------
+# FastAPI App Initialization
+# --------------------------
+app = FastAPI(
+    title="Crop Prices & Chatbot API",
+    description="API for accessing crop price data and chatbot responses",
+    version="1.0.0",
+)
+
+# CORS
+allowed_origins = os.getenv("ALLOW_ORIGINS", "*")
+origins = ["*"] if allowed_origins == "*" else [o.strip() for o in allowed_origins.split(",") if o.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --------------------------
 # Pydantic models
@@ -189,25 +208,6 @@ class CropPriceAPI:
             return []
 
 
-# --------------------------
-# FastAPI App Initialization
-# --------------------------
-app = FastAPI(
-    title="Crop Prices & Chatbot API",
-    description="API for accessing crop price data and chatbot responses",
-    version="1.0.0",
-)
-
-# CORS
-allowed_origins = os.getenv("ALLOW_ORIGINS", "*")
-origins = ["*"] if allowed_origins == "*" else [o.strip() for o in allowed_origins.split(",") if o.strip()]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # DB connection
 db_api: Optional[CropPriceAPI] = None
