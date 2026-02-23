@@ -152,7 +152,7 @@ class CropPriceAPI:
             if city:
                 filter_query["city"] = { "$regex": re.escape(city), "$options": "i"}
             if crop:
-                filter_query["crop"] = {"$regex": re.escape(crop),  "$options": "i"}
+                filter_query["crop"] = crop.strip()
             if date:
                 filter_query["date"] = date
             filter_query["min_price"] = {"$nin": ["", "-", None]}
