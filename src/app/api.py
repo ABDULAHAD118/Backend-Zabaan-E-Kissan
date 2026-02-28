@@ -20,6 +20,14 @@ import asyncio
 from .chatbotWorkflow import chatbot, rs_analyzer
 from langchain_core.messages import HumanMessage
 
+# ✅ Google Cloud Speech-to-Text service
+from .transcription_service import (
+    transcribe_bytes,
+    transcribe_bytes_long,
+    ALLOWED_MIMES,
+    is_client_available,
+)
+
 
 # --------------------------
 # Load environment variables
@@ -379,7 +387,13 @@ async def get_stats():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "services": {
+            "gcp_speech_to_text": is_client_available(),
+        },
+    }
 
 
 @app.post("/chat/transcribe")
@@ -462,6 +476,113 @@ async def transcribe_audio(
             detail=f"Failed to transcribe audio: {str(e)}"
         )
 
+@app.post("/chat/transcribe-gcp")
+async def transcribe_audio_gcp(
+    audio: UploadFile = File(..., description="Audio file (WAV, MP3, M4A, OGG, FLAC, WEBM)"),
+    language: str = Form(default="ur", description="BCP-47 language code (default: ur for Urdu)"),
+    sample_rate: int = Form(default=16000, description="Sample rate in Hz (default: 16000)"),
+):
+    """
+    Transcribe audio to text using Google Cloud Speech-to-Text API (synchronous recognize).
+    Best suited for audio clips up to ~60 seconds.
+    Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set.
+    Returns:
+        - transcript: Transcribed text
+        - language:   Language code used
+        - confidence: Confidence score (0-1)
+    """
+    if audio.content_type and audio.content_type not in ALLOWED_MIMES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported audio format: {audio.content_type}. "
+                   f"Allowed: {', '.join(sorted(ALLOWED_MIMES))}",
+        )
+    try:
+        audio_bytes = await audio.read()
+        if not audio_bytes:
+            raise HTTPException(status_code=400, detail="No audio content received.")
+        filename = audio.filename or "audio.wav"
+        logger.info(
+            "GCP transcribe request: file=%s language=%s sample_rate=%d",
+            filename, language, sample_rate,
+        )
+        result = transcribe_bytes(
+            audio_bytes=audio_bytes,
+            filename=filename,
+            language=language,
+            sample_rate=sample_rate,
+        )
+        logger.info(
+            "GCP transcription complete: %d characters (confidence=%.2f)",
+            len(result["transcript"]), result.get("confidence", 0),
+        )
+        return {
+            "transcript": result["transcript"],
+            "text": result["transcript"],          # alias for frontend compatibility
+            "language": result["language"],
+            "confidence": result.get("confidence", 0),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("GCP transcription error: %s", str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Google Cloud Speech-to-Text transcription failed: {str(e)}",
+        )
+
+@app.post("/chat/transcribe-gcp-stream")
+async def transcribe_audio_gcp_stream(
+    audio: UploadFile = File(..., description="Audio file for long-running transcription"),
+    language: str = Form(default="ur", description="BCP-47 language code (default: ur for Urdu)"),
+    sample_rate: int = Form(default=16000, description="Sample rate in Hz (default: 16000)"),
+):
+    """
+    Transcribe audio to text using Google Cloud Speech-to-Text longRunningRecognize.
+    Suitable for longer audio files (> 60 seconds).
+    Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set.
+    Returns:
+        - transcript: Transcribed text
+        - language:   Language code used
+    """
+    if audio.content_type and audio.content_type not in ALLOWED_MIMES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported audio format: {audio.content_type}. "
+                   f"Allowed: {', '.join(sorted(ALLOWED_MIMES))}",
+        )
+    try:
+        audio_bytes = await audio.read()
+        if not audio_bytes:
+            raise HTTPException(status_code=400, detail="No audio content received.")
+        filename = audio.filename or "audio.wav"
+        logger.info(
+            "GCP long-running transcribe request: file=%s language=%s sample_rate=%d",
+            filename, language, sample_rate,
+        )
+        result = transcribe_bytes_long(
+            audio_bytes=audio_bytes,
+            filename=filename,
+            language=language,
+            sample_rate=sample_rate,
+        )
+        logger.info(
+            "GCP long-running transcription complete: %d characters",
+            len(result["transcript"]),
+        )
+        return {
+            "transcript": result["transcript"],
+            "text": result["transcript"],          # alias for frontend compatibility
+            "language": result["language"],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("GCP long-running transcription error: %s", str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Google Cloud Speech-to-Text long-running transcription failed: {str(e)}",
+        )
 
 @app.websocket("/chat/{thread_id}")
 async def chat_socket(websocket: WebSocket, thread_id: str):

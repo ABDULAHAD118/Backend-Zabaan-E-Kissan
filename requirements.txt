@@ -19,3 +19,4 @@ langgraph
 fastapi[standard]
 python-dotenv
 openai
+google-cloud-speech
