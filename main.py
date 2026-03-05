@@ -1,20 +1,22 @@
+"""
+Root entry point.
+Run with:
+    python main.py
+or directly with uvicorn:
+    uvicorn src.app.main:app --host 0.0.0.0 --port 8000 --reload
+"""
 import uvicorn
 from dotenv import load_dotenv
 import os
-
-# Load environment variables from .env file
 load_dotenv()
-
-# Retrieve host and port from environment variables
-# Note: os.getenv() returns a string, so we must cast the port to an integer.
-HOST = os.getenv("HOST")
-PORT = os.getenv("PORT")
-
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8000"))
+RELOAD = os.getenv("APP_ENV", "development").lower() == "development"
 if __name__ == "__main__":
-    print(f"Starting server... {type(HOST)} {PORT}")
+    print(f"Starting AgriSmart API on {HOST}:{PORT} (reload={RELOAD})")
     uvicorn.run(
-        "src.app.api:app",
+        "src.app.main:app",
         host=HOST,
-        port=int(PORT),
-        reload=True
+        port=PORT,
+        reload=RELOAD,
     )

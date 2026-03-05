@@ -1,0 +1,138 @@
+{
+  "Corn_Common_Rust": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Low → Medium",
+    "description": "Fungal disease causing reddish-brown pustules on leaves",
+    "description_ur": "پھپھوندی کی بیماری جو پتوں پر سرخی مائل بھورے دانے بناتی ہے",
+    "action": "Monitor crop. If spreading, apply Mancozeb 75 WP (2g/L water)",
+    "action_ur": "فصل کی نگرانی کریں۔ پھیلاؤ پر Mancozeb 75 WP (2 گرام فی لیٹر پانی) چھڑکیں"
+  },
+  "Corn_Gray_Leaf_Spot": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Low → High",
+    "description": "Fungal disease causing rectangular gray-brown lesions",
+    "description_ur": "پھپھوندی کی بیماری جو پتوں پر سرمئی بھورے دھبے بناتی ہے",
+    "action": "Remove infected leaves. Apply Azoxystrobin if severe",
+    "action_ur": "متاثرہ پتے ہٹائیں۔ شدید ہونے پر Azoxystrobin استعمال کریں"
+  },
+  "Corn_Healthy": {
+    "status": "✅ Healthy Plant",
+    "severity_range": "None",
+    "description": "No disease detected - plant appears healthy",
+    "description_ur": "کوئی بیماری نہیں - پودا صحت مند ہے",
+    "action": "Continue regular care and monitoring",
+    "action_ur": "باقاعدہ دیکھ بھال جاری رکھیں"
+  },
+  "Corn_Northern_Leaf_Blight": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Medium → High",
+    "description": "Fungal disease causing long elliptical gray-green lesions",
+    "description_ur": "پھپھوندی کی بیماری جو لمبے سرمئی سبز دھبے بناتی ہے",
+    "action": "Apply Propiconazole 25 EC (1ml/L). Remove severely infected plants",
+    "action_ur": "Propiconazole 25 EC (1ml فی لیٹر) چھڑکیں۔ شدید متاثرہ پودے ہٹائیں"
+  },
+  "Potato_Early_Blight": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Low → Medium",
+    "description": "Fungal disease causing dark spots with concentric rings",
+    "description_ur": "پھپھوندی کی بیماری جو گہرے دھبے بناتی ہے",
+    "action": "Apply Mancozeb or Chlorothalonil preventively",
+    "action_ur": "Mancozeb یا Chlorothalonil چھڑکیں"
+  },
+  "Potato_Healthy": {
+    "status": "✅ Healthy Plant",
+    "severity_range": "None",
+    "description": "No disease detected - plant appears healthy",
+    "description_ur": "کوئی بیماری نہیں - پودا صحت مند ہے",
+    "action": "Continue regular care and monitoring",
+    "action_ur": "باقاعدہ دیکھ بھال جاری رکھیں"
+  },
+  "Potato_Late_Blight": {
+    "status": "🔴 Serious Disease",
+    "severity_range": "High → Very High",
+    "description": "Highly destructive disease - can destroy entire crop quickly",
+    "description_ur": "بہت خطرناک بیماری - پوری فصل تباہ کر سکتی ہے",
+    "action": "URGENT: Apply Metalaxyl + Mancozeb immediately. Isolate infected plants",
+    "action_ur": "فوری: Metalaxyl + Mancozeb فوراً چھڑکیں۔ متاثرہ پودے الگ کریں"
+  },
+  "Rice_Brown_Spot": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Low → Medium",
+    "description": "Fungal disease causing oval brown spots on leaves",
+    "description_ur": "پھپھوندی کی بیماری جو پتوں پر بھورے دھبے بناتی ہے",
+    "action": "Apply Tricyclazole 75 WP (0.6g/L) or Mancozeb",
+    "action_ur": "Tricyclazole 75 WP (0.6 گرام فی لیٹر) یا Mancozeb چھڑکیں"
+  },
+  "Rice_Healthy": {
+    "status": "✅ Healthy Plant",
+    "severity_range": "None",
+    "description": "No disease detected - plant appears healthy",
+    "description_ur": "کوئی بیماری نہیں - پودا صحت مند ہے",
+    "action": "Continue regular care and monitoring",
+    "action_ur": "باقاعدہ دیکھ بھال جاری رکھیں"
+  },
+  "Rice_Leaf_Blast": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Medium → High",
+    "description": "Fungal disease causing diamond-shaped lesions on leaves",
+    "description_ur": "پھپھوندی کی بیماری جو پتوں پر ہیرے کی شکل کے دھبے بناتی ہے",
+    "action": "Apply Tricyclazole 75 WP (0.6g/L). Reduce nitrogen fertilizer",
+    "action_ur": "Tricyclazole 75 WP چھڑکیں۔ نائٹروجن کھاد کم کریں"
+  },
+  "Rice_Neck_Blast": {
+    "status": "🔴 Serious Disease",
+    "severity_range": "High → Very High",
+    "description": "Severe fungal disease affecting panicle neck - causes grain loss",
+    "description_ur": "شدید پھپھوندی جو بالی کی گردن کو متاثر کرتی ہے - دانے خراب ہو جاتے ہیں",
+    "action": "URGENT: Apply Tricyclazole immediately. May be too late for affected panicles",
+    "action_ur": "فوری: Tricyclazole فوراً چھڑکیں۔ متاثرہ بالیوں کے لیے دیر ہو سکتی ہے"
+  },
+  "Sugarcane_Bacterial_Blight": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Low → Medium",
+    "description": "Bacterial disease causing white stripes on leaves",
+    "description_ur": "بیکٹیریا کی بیماری جو پتوں پر سفید دھاریاں بناتی ہے",
+    "action": "Remove infected leaves. Apply Copper-based bactericide",
+    "action_ur": "متاثرہ پتے ہٹائیں۔ تانبے پر مبنی دوا چھڑکیں"
+  },
+  "Sugarcane_Healthy": {
+    "status": "✅ Healthy Plant",
+    "severity_range": "None",
+    "description": "No disease detected - plant appears healthy",
+    "description_ur": "کوئی بیماری نہیں - پودا صحت مند ہے",
+    "action": "Continue regular care and monitoring",
+    "action_ur": "باقاعدہ دیکھ بھال جاری رکھیں"
+  },
+  "Sugarcane_Red_Dot": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Low → Medium",
+    "description": "Fungal disease causing red dots on leaves",
+    "description_ur": "پھپھوندی کی بیماری جو پتوں پر سرخ نقطے بناتی ہے",
+    "action": "Apply Mancozeb (2.5g/L). Improve field drainage",
+    "action_ur": "Mancozeb (2.5 گرام فی لیٹر) چھڑکیں۔ کھیت کی نکاسی بہتر کریں"
+  },
+  "Wheat_Brown_rust": {
+    "status": "⚠️ Disease Detected",
+    "severity_range": "Medium → High",
+    "description": "Fungal disease causing orange-brown pustules on leaves",
+    "description_ur": "پھپھوندی کی بیماری جو پتوں پر نارنجی بھورے دانے بناتی ہے",
+    "action": "Apply Propiconazole 25 EC (1ml/L) or Tebuconazole",
+    "action_ur": "Propiconazole 25 EC (1ml فی لیٹر) یا Tebuconazole چھڑکیں"
+  },
+  "Wheat_Healthy": {
+    "status": "✅ Healthy Plant",
+    "severity_range": "None",
+    "description": "No disease detected - plant appears healthy",
+    "description_ur": "کوئی بیماری نہیں - پودا صحت مند ہے",
+    "action": "Continue regular care and monitoring",
+    "action_ur": "باقاعدہ دیکھ بھال جاری رکھیں"
+  },
+  "Wheat_Yellow_Rust": {
+    "status": "🔴 Serious Disease",
+    "severity_range": "High → Very High",
+    "description": "Highly aggressive fungal disease - spreads rapidly in cool weather",
+    "description_ur": "بہت تیزی سے پھیلنے والی پھپھوندی - ٹھنڈے موسم میں زیادہ پھیلتی ہے",
+    "action": "URGENT: Apply Propiconazole 25 EC immediately. Scout entire field",
+    "action_ur": "فوری: Propiconazole 25 EC فوراً چھڑکیں۔ پورے کھیت کا جائزہ لیں"
+  }
+}
