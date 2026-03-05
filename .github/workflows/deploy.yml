@@ -28,8 +28,8 @@ jobs:
       - name: Deploy Backend via SSH
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@206.189.140.248 "
-            cd /root/Price-Scrapping || git clone https://github.com/ABDULAHAD118/Price-Scrapping.git /root/Price-Scrapping;
-            cd /root/Price-Scrapping &&
+            cd /root/Backend-Zabaan-E-Kissan || git clone https://github.com/ABDULAHAD118/Backend-Zabaan-E-Kissan.git /root/Backend-Zabaan-E-Kissan;
+            cd /root/Backend-Zabaan-E-Kissan &&
             git pull origin main &&
             source venv/bin/activate &&
             pip install -r requirements.txt &&

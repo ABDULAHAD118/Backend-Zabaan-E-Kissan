@@ -42,7 +42,7 @@ It combines crop price data, AI-powered plant disease detection, an agricultural
 ## 📁 Project Structure
 
 ```
-Price-Scrapping/
+Backend-Zabaan-E-Kissan/
 ├── main.py                          # Root entry point (uvicorn launcher)
 ├── requirements.txt
 ├── .env                             # Environment variables (not committed)
