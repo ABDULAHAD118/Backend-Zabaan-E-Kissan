@@ -31,7 +31,7 @@ jobs:
             cd /root/Backend-Zabaan-E-Kissan || git clone https://github.com/ABDULAHAD118/Backend-Zabaan-E-Kissan.git /root/Backend-Zabaan-E-Kissan;
             cd /root/Backend-Zabaan-E-Kissan &&
             git pull origin main &&
-            source venv/bin/activate &&
+            source .venv/bin/activate &&
             pip install -r requirements.txt &&
             sudo systemctl restart fastapi &&
             echo '🚀 Deployment completed successfully!'
