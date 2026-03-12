@@ -7,6 +7,10 @@ import tempfile
 from typing import Optional
 from openai import OpenAI
 from ..core import config
+import boto3
+import uuid
+import time
+
 logger = logging.getLogger(__name__)
 def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] = None) -> dict:
     """
@@ -22,6 +26,11 @@ def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] 
         ValueError:  If OPENAI_API_KEY is not configured.
         RuntimeError: On transcription failure.
     """
+    # provider = getattr(config, "TRANSCRIBE_PROVIDER", "openai")
+    # print('Provider',provider)
+    # if provider == "aws":
+    #     return transcribe_audio_aws(audio_bytes, filename, language or "ur")
+
     if not config.OPENAI_API_KEY:
         raise ValueError(
             "OPENAI_API_KEY is not set. Configure it in your environment variables."
@@ -58,3 +67,65 @@ def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] 
             os.unlink(tmp_path)
         except OSError as exc:
             logger.warning("Could not delete temp file %s: %s", tmp_path, exc)
+
+def transcribe_audio_aws(audio_bytes: bytes, filename: str, language: str = "ur") -> dict:
+    """
+    Transcribe audio using Amazon Transcribe.
+    """
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+        region_name=config.AWS_REGION,
+    )
+
+    transcribe = boto3.client(
+        "transcribe",
+        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+        region_name=config.AWS_REGION,
+    )
+
+    bucket = config.AWS_TRANSCRIBE_BUCKET
+    job_name = f"transcription-{uuid.uuid4()}"
+
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else "wav"
+    key = f"uploads/{job_name}.{ext}"
+
+    # Upload audio to S3
+    s3.put_object(Bucket=bucket, Key=key, Body=audio_bytes)
+
+    media_uri = f"s3://{bucket}/{key}"
+
+    # Start transcription job
+    transcribe.start_transcription_job(
+        TranscriptionJobName=job_name,
+        Media={"MediaFileUri": media_uri},
+        MediaFormat=ext,
+        LanguageCode=language,
+    )
+
+    # Wait for job completion
+    while True:
+        status = transcribe.get_transcription_job(
+            TranscriptionJobName=job_name
+        )
+
+        job_status = status["TranscriptionJob"]["TranscriptionJobStatus"]
+
+        if job_status in ["COMPLETED", "FAILED"]:
+            break
+
+        time.sleep(2)
+
+    if job_status == "FAILED":
+        raise RuntimeError("AWS transcription failed")
+
+    transcript_uri = status["TranscriptionJob"]["Transcript"]["TranscriptFileUri"]
+
+    import requests
+    transcript_json = requests.get(transcript_uri).json()
+
+    transcript_text = transcript_json["results"]["transcripts"][0]["transcript"]
+
+    return {"transcript": transcript_text, "text": transcript_text}

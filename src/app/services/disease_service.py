@@ -29,6 +29,7 @@ DISEASE_INFO: Dict[str, dict] = _load_disease_info()
 # ── Model loader ───────────────────────────────────────────────────────────────
 def load_model():
     """Load and return the Keras disease detection model."""
+    import tensorflow
     from tensorflow import keras  # lazy import to avoid slow startup if unused
     model_path = config.MODEL_PATH
     if not Path(model_path).exists():

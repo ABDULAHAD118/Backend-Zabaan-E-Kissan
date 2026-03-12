@@ -31,6 +31,7 @@ async def lifespan(app: FastAPI):
         model = load_model()
         set_ml_model(model)
     except Exception as exc:
+        print(exc)
         logger.error("⚠️  ML model could not be loaded: %s", exc)
     logger.info("🚀 Application startup complete")
     yield
@@ -43,7 +44,7 @@ async def lifespan(app: FastAPI):
 # ── App factory ───────────────────────────────────────────────────────────────
 def create_app() -> FastAPI:
     application = FastAPI(
-        title="AgriSmart API",
+        title="Zabaan E-Kissan API",
         description=(
             "Unified API for crop price data, plant disease detection, "
             "agricultural chatbot, and audio transcription."
@@ -70,7 +71,7 @@ def create_app() -> FastAPI:
     @application.get("/", tags=["General"])
     async def root() -> Dict[str, Any]:
         return {
-            "service": "AgriSmart API",
+            "service": "Zabaan-E-Kissan API",
             "version": "1.0.0",
             "status": "running",
             "docs": "/docs",
