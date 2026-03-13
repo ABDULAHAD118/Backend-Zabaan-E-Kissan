@@ -20,16 +20,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_rsa
-          ssh-keyscan -H 206.189.140.248 >> ~/.ssh/known_hosts
+          ssh-keyscan -H 68.183.90.5 >> ~/.ssh/known_hosts
 
       - name: Test SSH Connection
-        run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@206.189.140.248 "echo '✅ SSH works from GitHub Actions!'"
+        run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@68.183.90.5 "echo '✅ SSH works from GitHub Actions!'"
 
       - name: Deploy Backend via SSH
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@206.189.140.248 "
-            cd /root/Backend-Zabaan-E-Kissan || git clone https://github.com/ABDULAHAD118/Backend-Zabaan-E-Kissan.git /root/Backend-Zabaan-E-Kissan;
-            cd /root/Backend-Zabaan-E-Kissan &&
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@68.183.90.5 "
+            cd /home/deploy/Backend-Zabaan-E-Kissan;
+            cd /home/deploy/Backend-Zabaan-E-Kissan &&
             git pull origin main &&
             source .venv/bin/activate &&
             pip install -r requirements.txt &&

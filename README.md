@@ -296,9 +296,6 @@ sudo systemctl restart fastapi
 sudo journalctl -u fastapi -f
 ```
 
-**Server:** `206.189.140.248`  
-**Live docs:** `http://206.189.140.248:8000/docs`
-
 ---
 
 ## ⚙️ CI/CD Pipeline
