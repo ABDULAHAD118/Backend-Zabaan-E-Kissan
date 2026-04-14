@@ -7,12 +7,6 @@ import tempfile
 from typing import Optional
 from openai import OpenAI
 from ..core import config
-import boto3
-import uuid
-import time
-import torch
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
-
 logger = logging.getLogger(__name__)
 def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] = None) -> dict:
     """
@@ -65,61 +59,3 @@ def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] 
             os.unlink(tmp_path)
         except OSError as exc:
             logger.warning("Could not delete temp file %s: %s", tmp_path, exc)
-
-def transcribe_audio_hf(audio_bytes: bytes, filename: str, language: Optional[str] = None) -> dict:
-    """
-    Transcribe audio bytes using HuggingFace Whisper pipeline.
-    Keeps existing OpenAI-based method untouched.
-    """
-    if not audio_bytes:
-        raise ValueError("Audio content is empty.")
-
-    requested_language = (language or config.WHISPER_DEFAULT_LANGUAGE).strip() or None
-    resolved_device =  "cpu"
-    torch_dtype = torch.float32
-
-    ext = filename.rsplit(".", 1)[-1] if "." in filename else "mp4"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
-        tmp.write(audio_bytes)
-        tmp_path = tmp.name
-
-    try:
-        model = AutoModelForSpeechSeq2Seq.from_pretrained(
-            config.HF_WHISPER_MODEL_ID,
-            torch_dtype=torch_dtype,
-            low_cpu_mem_usage=True,
-            use_safetensors=True,
-        )
-        processor = AutoProcessor.from_pretrained(config.HF_WHISPER_MODEL_ID)
-
-        asr_pipeline = pipeline(
-            "automatic-speech-recognition",
-            model=model,
-            tokenizer=processor.tokenizer,
-            feature_extractor=processor.feature_extractor,
-            torch_dtype=torch_dtype,
-            device=resolved_device,
-            return_timestamps=config.HF_WHISPER_RETURN_TIMESTAMPS,
-        )
-
-        generate_kwargs = {"language": requested_language} if requested_language else None
-        result = asr_pipeline(tmp_path, generate_kwargs=generate_kwargs)
-        transcript_text = (result or {}).get("text", "").strip()
-
-        logger.info(
-            "HF transcription complete: %d chars, model=%s, device=%s, language=%s",
-            len(transcript_text),
-            config.HF_WHISPER_MODEL_ID,
-            resolved_device,
-            requested_language,
-        )
-        return {"transcript": transcript_text, "text": transcript_text, "raw": result}
-    except Exception as exc:
-        logger.error("HF transcription failed: %s", exc)
-        raise RuntimeError(str(exc)) from exc
-    finally:
-        try:
-            os.unlink(tmp_path)
-        except OSError as exc:
-            logger.warning("Could not delete temp file %s: %s", tmp_path, exc)
-

@@ -30,10 +30,6 @@ MONGO_CONNECT_TIMEOUT_MS: int = int(os.getenv("MONGO_CONNECT_TIMEOUT_MS", "5000"
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 WHISPER_MODEL: str = os.getenv("WHISPER_MODEL", "whisper-1")
 WHISPER_DEFAULT_LANGUAGE: str = os.getenv("WHISPER_DEFAULT_LANGUAGE", "ur")
-# ── HuggingFace Whisper ───────────────────────────────────────────────────────
-HF_WHISPER_MODEL_ID: str = os.getenv("HF_WHISPER_MODEL_ID", "openai/whisper-large-v3")
-HF_WHISPER_DEVICE: str = os.getenv("HF_WHISPER_DEVICE", "cuda:0")
-HF_WHISPER_RETURN_TIMESTAMPS: bool = os.getenv("HF_WHISPER_RETURN_TIMESTAMPS", "true").lower() == "true"
 # ── Disease Detection ──────────────────────────────────────────────────────────
 IMG_SIZE: tuple[int, int] = (224, 224)
 CLASS_NAMES: list[str] = [
