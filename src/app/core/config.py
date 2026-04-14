@@ -30,12 +30,10 @@ MONGO_CONNECT_TIMEOUT_MS: int = int(os.getenv("MONGO_CONNECT_TIMEOUT_MS", "5000"
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 WHISPER_MODEL: str = os.getenv("WHISPER_MODEL", "whisper-1")
 WHISPER_DEFAULT_LANGUAGE: str = os.getenv("WHISPER_DEFAULT_LANGUAGE", "ur")
-# ── AWS Transcribe / S3 ─────────────────────────────────────────────────────────
-TRANSCRIBE_PROVIDER: str = os.getenv("TRANSCRIBE_PROVIDER", "openai")
-AWS_TRANSCRIBE_BUCKET: str = os.getenv("AWS_TRANSCRIBE_BUCKET", "")
-AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
-AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
-AWS_REGION: str = os.getenv("AWS_REGION", "ap-southeast-2")
+# ── HuggingFace Whisper ───────────────────────────────────────────────────────
+HF_WHISPER_MODEL_ID: str = os.getenv("HF_WHISPER_MODEL_ID", "openai/whisper-large-v3")
+HF_WHISPER_DEVICE: str = os.getenv("HF_WHISPER_DEVICE", "cuda:0")
+HF_WHISPER_RETURN_TIMESTAMPS: bool = os.getenv("HF_WHISPER_RETURN_TIMESTAMPS", "true").lower() == "true"
 # ── Disease Detection ──────────────────────────────────────────────────────────
 IMG_SIZE: tuple[int, int] = (224, 224)
 CLASS_NAMES: list[str] = [

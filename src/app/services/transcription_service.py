@@ -10,6 +10,8 @@ from ..core import config
 import boto3
 import uuid
 import time
+import torch
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
 logger = logging.getLogger(__name__)
 def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] = None) -> dict:
@@ -26,10 +28,6 @@ def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] 
         ValueError:  If OPENAI_API_KEY is not configured.
         RuntimeError: On transcription failure.
     """
-    # provider = getattr(config, "TRANSCRIBE_PROVIDER", "openai")
-    # print('Provider',provider)
-    # if provider == "aws":
-    #     return transcribe_audio_aws(audio_bytes, filename, language or "ur")
 
     if not config.OPENAI_API_KEY:
         raise ValueError(
@@ -68,64 +66,60 @@ def transcribe_audio(audio_bytes: bytes, filename: str, language: Optional[str] 
         except OSError as exc:
             logger.warning("Could not delete temp file %s: %s", tmp_path, exc)
 
-def transcribe_audio_aws(audio_bytes: bytes, filename: str, language: str = "ur") -> dict:
+def transcribe_audio_hf(audio_bytes: bytes, filename: str, language: Optional[str] = None) -> dict:
     """
-    Transcribe audio using Amazon Transcribe.
+    Transcribe audio bytes using HuggingFace Whisper pipeline.
+    Keeps existing OpenAI-based method untouched.
     """
-    s3 = boto3.client(
-        "s3",
-        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-        region_name=config.AWS_REGION,
-    )
+    if not audio_bytes:
+        raise ValueError("Audio content is empty.")
 
-    transcribe = boto3.client(
-        "transcribe",
-        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-        region_name=config.AWS_REGION,
-    )
+    requested_language = (language or config.WHISPER_DEFAULT_LANGUAGE).strip() or None
+    resolved_device =  "cpu"
+    torch_dtype = torch.float32
 
-    bucket = config.AWS_TRANSCRIBE_BUCKET
-    job_name = f"transcription-{uuid.uuid4()}"
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else "mp4"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
+        tmp.write(audio_bytes)
+        tmp_path = tmp.name
 
-    ext = filename.rsplit(".", 1)[-1] if "." in filename else "wav"
-    key = f"uploads/{job_name}.{ext}"
+    try:
+        model = AutoModelForSpeechSeq2Seq.from_pretrained(
+            config.HF_WHISPER_MODEL_ID,
+            torch_dtype=torch_dtype,
+            low_cpu_mem_usage=True,
+            use_safetensors=True,
+        )
+        processor = AutoProcessor.from_pretrained(config.HF_WHISPER_MODEL_ID)
 
-    # Upload audio to S3
-    s3.put_object(Bucket=bucket, Key=key, Body=audio_bytes)
-
-    media_uri = f"s3://{bucket}/{key}"
-
-    # Start transcription job
-    transcribe.start_transcription_job(
-        TranscriptionJobName=job_name,
-        Media={"MediaFileUri": media_uri},
-        MediaFormat=ext,
-        LanguageCode=language,
-    )
-
-    # Wait for job completion
-    while True:
-        status = transcribe.get_transcription_job(
-            TranscriptionJobName=job_name
+        asr_pipeline = pipeline(
+            "automatic-speech-recognition",
+            model=model,
+            tokenizer=processor.tokenizer,
+            feature_extractor=processor.feature_extractor,
+            torch_dtype=torch_dtype,
+            device=resolved_device,
+            return_timestamps=config.HF_WHISPER_RETURN_TIMESTAMPS,
         )
 
-        job_status = status["TranscriptionJob"]["TranscriptionJobStatus"]
+        generate_kwargs = {"language": requested_language} if requested_language else None
+        result = asr_pipeline(tmp_path, generate_kwargs=generate_kwargs)
+        transcript_text = (result or {}).get("text", "").strip()
 
-        if job_status in ["COMPLETED", "FAILED"]:
-            break
+        logger.info(
+            "HF transcription complete: %d chars, model=%s, device=%s, language=%s",
+            len(transcript_text),
+            config.HF_WHISPER_MODEL_ID,
+            resolved_device,
+            requested_language,
+        )
+        return {"transcript": transcript_text, "text": transcript_text, "raw": result}
+    except Exception as exc:
+        logger.error("HF transcription failed: %s", exc)
+        raise RuntimeError(str(exc)) from exc
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError as exc:
+            logger.warning("Could not delete temp file %s: %s", tmp_path, exc)
 
-        time.sleep(2)
-
-    if job_status == "FAILED":
-        raise RuntimeError("AWS transcription failed")
-
-    transcript_uri = status["TranscriptionJob"]["Transcript"]["TranscriptFileUri"]
-
-    import requests
-    transcript_json = requests.get(transcript_uri).json()
-
-    transcript_text = transcript_json["results"]["transcripts"][0]["transcript"]
-
-    return {"transcript": transcript_text, "text": transcript_text}
