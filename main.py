@@ -13,7 +13,7 @@ HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 RELOAD = os.getenv("APP_ENV", "development").lower() == "development"
 if __name__ == "__main__":
-    print(f"Starting AgriSmart API on {HOST}:{PORT} (reload={RELOAD})")
+    print(f"Starting Zabaan-E-Kissan API on {HOST}:{PORT} (reload={RELOAD})")
     uvicorn.run(
         "src.app.main:app",
         host=HOST,
