@@ -16,6 +16,7 @@ langchain-huggingface
 langgraph
 python-dotenv
 openai
+google-cloud-speech
 numpy>=1.26.0
 tensorflow>=2.20.0
 keras==3.10.0

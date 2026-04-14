@@ -30,6 +30,10 @@ MONGO_CONNECT_TIMEOUT_MS: int = int(os.getenv("MONGO_CONNECT_TIMEOUT_MS", "5000"
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 WHISPER_MODEL: str = os.getenv("WHISPER_MODEL", "whisper-1")
 WHISPER_DEFAULT_LANGUAGE: str = os.getenv("WHISPER_DEFAULT_LANGUAGE", "ur")
+# ── Google Cloud Speech-to-Text ────────────────────────────────────────────────
+GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+GOOGLE_SPEECH_MODEL: str = os.getenv("GOOGLE_SPEECH_MODEL", "latest")
+GOOGLE_SPEECH_DEFAULT_LANGUAGE: str = os.getenv("GOOGLE_SPEECH_DEFAULT_LANGUAGE", "ur-PK")
 # ── Disease Detection ──────────────────────────────────────────────────────────
 IMG_SIZE: tuple[int, int] = (224, 224)
 CLASS_NAMES: list[str] = [

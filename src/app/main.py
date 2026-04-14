@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core import config
 from .dependencies import set_db, set_ml_model
-from .routers import chatbot, crop_prices, disease, transcription
+from .routers import chatbot, crop_prices, disease, transcription, google_transcription
 logging.basicConfig(level=config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 # ── Lifespan: start-up & shut-down ────────────────────────────────────────────
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
 # ── App factory ───────────────────────────────────────────────────────────────
 def create_app() -> FastAPI:
     application = FastAPI(
-        title="Zabaan E-Kissan API",
+        title="Zabaan E-Kissan API ",
         description=(
             "Unified API for crop price data, plant disease detection, "
             "agricultural chatbot, and audio transcription."
@@ -67,6 +67,7 @@ def create_app() -> FastAPI:
     application.include_router(disease.router)
     application.include_router(chatbot.router)
     application.include_router(transcription.router)
+    application.include_router(google_transcription.router)
     # ── General endpoints ──────────────────────────────────────────────────────
     @application.get("/", tags=["General"])
     async def root() -> Dict[str, Any]:
@@ -93,7 +94,8 @@ def create_app() -> FastAPI:
                     "analyze_field": "GET  /chat/analyze-field",
                 },
                 "transcription": {
-                    "transcribe": "POST /transcribe",
+                    "transcribe_openai": "POST /transcribe",
+                    "transcribe_google": "POST /transcribe/google",
                 },
             },
         }
