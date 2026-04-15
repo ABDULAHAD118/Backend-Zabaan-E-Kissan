@@ -18,6 +18,7 @@ import logging
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from ..app.core import config
 
 # Configure logging
 logging.basicConfig(
@@ -35,7 +36,7 @@ class CropPriceDatabase:
     def __init__(self, connection_string=None, database_name="crop_prices_db"):
         """Initialize MongoDB connection"""
         if connection_string is None:
-            connection_string = os.environ.get('MONGODB_CONNECTION_STRING')
+            connection_string = config.MONGODB_CONNECTION_STRING
             if not connection_string:
                 raise ValueError(
                     "MongoDB connection string not found. Please set MONGODB_CONNECTION_STRING environment variable.")
