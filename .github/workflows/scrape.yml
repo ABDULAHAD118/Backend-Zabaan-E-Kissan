@@ -18,10 +18,23 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Free up disk space (optional)
+      run: |
+        sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet /usr/local/share/boost
+        sudo apt-get clean
+
     - name: Set up Chrome
       uses: browser-actions/setup-chrome@v1
       with:
         chrome-version: stable
+
+    - name: Restore pip cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip/wheels
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
@@ -31,13 +44,4 @@ jobs:
     - name: Run scraper
       env:
         MONGODB_CONNECTION_STRING: ${{ secrets.MONGODB_CONNECTION_STRING }}
-      run: |
-        python -m src.scraper.main
-
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      run: python -m src.scraper.main
